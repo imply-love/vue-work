@@ -1,0 +1,11 @@
+# Cloudflare Pages 部署配置（文件会被原样发布到站点根目录，只在部署平台生效，本地开发不生效）
+
+# 规则自上而下匹配，第一条命中即生效，所以 /api/* 必须写在 /* 前面。
+
+# 1) 把 /api 反向代理到 Flask 后端，浏览器侧始终同源，无需依赖 CORS。
+#    后端部署好之后，把下面这行的域名换成你的后端地址，并去掉行首的 # 号。
+#    例：后端用 Cloudflare Tunnel 暴露成 https://api.example.com
+# /api/*  https://your-backend.example.com/api/:splat  200
+
+# 2) SPA 路由回退：vue-router 使用 history 模式，刷新子路由时需要回退到 index.html
+/*  /index.html  200

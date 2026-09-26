@@ -1,0 +1,363 @@
+/* ========================================
+   GHIBLI GLOBAL STYLES - 吉卜力风格全局样式入口
+   统一导入所有设计令牌、纹理、组件、动画、工具类
+   ======================================== */
+
+/* ===== 导入吉卜力设计系统 ===== */
+@import './ghibli/tokens.css';
+@import './ghibli/textures.css';
+@import './ghibli/components.css';
+@import './ghibli/animations.css';
+@import './ghibli/utilities.css';
+
+/* ===== 基础重置 ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-text);
+  background: var(--color-bg);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* 页面纸张纹理 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 选择文本样式 */
+::selection {
+  background: var(--ghibli-sky-200);
+  color: var(--ghibli-ink-800);
+}
+
+/* 焦点可见样式 - 无障碍支持 */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* 链接基础样式 */
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-gentle);
+}
+
+a:hover {
+  color: var(--ghibli-sky-600);
+}
+
+/* 图片基础样式 */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  vertical-align: middle;
+}
+
+/* 按钮重置 */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* 输入框重置 */
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+/* 列表重置 */
+ul,
+ol {
+  list-style: none;
+}
+
+/* 表格重置 */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* 标题基础样式 */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+}
+
+h1 { font-size: var(--text-5xl); }
+h2 { font-size: var(--text-4xl); }
+h3 { font-size: var(--text-3xl); }
+h4 { font-size: var(--text-2xl); }
+h5 { font-size: var(--text-xl); }
+h6 { font-size: var(--text-lg); }
+
+/* 段落 */
+p {
+  margin-bottom: var(--space-4);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
+}
+
+/* 代码样式 */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--ghibli-paper-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  background: var(--ghibli-ink-800);
+  color: var(--ghibli-paper-50);
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+}
+
+pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* 引用块 */
+blockquote {
+  border-left: 3px solid var(--ghibli-sky-400);
+  padding-left: var(--space-6);
+  margin: var(--space-6) 0;
+  font-style: italic;
+  color: var(--color-text-muted);
+  background: var(--ghibli-sky-50);
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  padding: var(--space-4) var(--space-6);
+}
+
+/* 水平分割线 */
+hr {
+  border: none;
+  border-top: 1px solid var(--color-divider);
+  margin: var(--space-8) 0;
+}
+
+/* ===========================================
+   滚动条样式 / Scrollbar Styles
+   =========================================== */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ghibli-paper-100);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--ghibli-sky-300), var(--ghibli-forest-300));
+  border-radius: var(--radius-full);
+  border: 2px solid var(--ghibli-paper-100);
+  transition: background var(--duration-fast) var(--ease-gentle);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--ghibli-sky-400), var(--ghibli-forest-400));
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox 滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ghibli-sky-400) var(--ghibli-paper-100);
+}
+
+/* ===========================================
+   Vue 过渡动画类名
+   =========================================== */
+
+/* 页面转场 */
+.page-transition-enter-active,
+.page-transition-leave-active {
+  transition: all var(--duration-slow) var(--ease-gentle);
+}
+
+.page-transition-enter-from,
+.page-transition-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* 列表转场 */
+.list-transition-enter-active,
+.list-transition-leave-active {
+  transition: all var(--duration-normal) var(--ease-spring);
+}
+
+.list-transition-enter-from,
+.list-transition-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.list-transition-move {
+  transition: transform var(--duration-normal) var(--ease-gentle);
+}
+
+/* 模态框转场 */
+.modal-transition-enter-active {
+  animation: modalEnter var(--duration-slow) var(--ease-spring);
+}
+
+.modal-transition-leave-active {
+  animation: modalEnter var(--duration-fast) var(--ease-gentle) reverse;
+}
+
+.modal-backdrop-transition-enter-active {
+  animation: fadeIn var(--duration-normal) var(--ease-gentle);
+}
+
+.modal-backdrop-transition-leave-active {
+  animation: fadeIn var(--duration-fast) var(--ease-gentle) reverse;
+}
+
+/* 下拉菜单转场 */
+.dropdown-transition-enter-active {
+  animation: dropdownEnter var(--duration-fast) var(--ease-spring);
+}
+
+.dropdown-transition-leave-active {
+  animation: dropdownEnter var(--duration-fast) var(--ease-gentle) reverse;
+}
+
+/* 吐司转场 */
+.toast-transition-enter-active {
+  animation: toastEnter var(--duration-normal) var(--ease-spring);
+}
+
+.toast-transition-leave-active {
+  animation: toastEnter var(--duration-fast) var(--ease-gentle) reverse;
+}
+
+/* 折叠面板 */
+.collapse-transition-enter-active,
+.collapse-transition-leave-active {
+  transition: height var(--duration-normal) var(--ease-gentle), opacity var(--duration-normal) var(--ease-gentle);
+}
+
+.collapse-transition-enter-from,
+.collapse-transition-leave-to {
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* ===========================================
+   打印样式
+   =========================================== */
+@media print {
+  .ghibli-clouds,
+  .ghibli-birds,
+  .ghibli-petals,
+  .ghibli-fireflies,
+  .ghibli-godrays,
+  .ghibli-watercolor-bg::before {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .ghibli-card {
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ===========================================
+   响应式断点辅助类
+   =========================================== */
+
+@media (max-width: 640px) {
+  .hide-sm { display: none !important; }
+}
+
+@media (max-width: 768px) {
+  .hide-md { display: none !important; }
+  .mobile-flex-col { flex-direction: column !important; }
+  .mobile-text-center { text-align: center !important; }
+  .mobile-full-width { width: 100% !important; }
+}
+
+@media (max-width: 1024px) {
+  .hide-lg { display: none !important; }
+}
+
+@media (max-width: 1280px) {
+  .hide-xl { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
+}

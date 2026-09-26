@@ -1,0 +1,853 @@
+/* ========================================
+   GHIBLI UTILITIES - 工具类
+   布局、间距、文字、显示/隐藏等通用工具类
+   ======================================== */
+
+/* ===== 显示/隐藏 ===== */
+.ghibli-hidden { display: none !important; }
+.ghibli-invisible { visibility: hidden !important; }
+.ghibli-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== Flexbox 布局 ===== */
+.ghibli-flex { display: flex; }
+.ghibli-inline-flex { display: inline-flex; }
+.ghibli-flex-1 { flex: 1 1 0%; }
+.ghibli-flex-auto { flex: 1 1 auto; }
+.ghibli-flex-initial { flex: 0 1 auto; }
+.ghibli-flex-none { flex: none; }
+
+.ghibli-flex-row { flex-direction: row; }
+.ghibli-flex-col { flex-direction: column; }
+.ghibli-flex-row-reverse { flex-direction: row-reverse; }
+.ghibli-flex-col-reverse { flex-direction: column-reverse; }
+
+.ghibli-flex-wrap { flex-wrap: wrap; }
+.ghibli-flex-nowrap { flex-wrap: nowrap; }
+.ghibli-flex-wrap-reverse { flex-wrap: wrap-reverse; }
+
+.ghibli-items-start { align-items: flex-start; }
+.ghibli-items-center { align-items: center; }
+.ghibli-items-end { align-items: flex-end; }
+.ghibli-items-stretch { align-items: stretch; }
+.ghibli-items-baseline { align-items: baseline; }
+
+.ghibli-self-auto { align-self: auto; }
+.ghibli-self-start { align-self: flex-start; }
+.ghibli-self-center { align-self: center; }
+.ghibli-self-end { align-self: flex-end; }
+.ghibli-self-stretch { align-self: stretch; }
+
+.ghibli-justify-start { justify-content: flex-start; }
+.ghibli-justify-center { justify-content: center; }
+.ghibli-justify-end { justify-content: flex-end; }
+.ghibli-justify-between { justify-content: space-between; }
+.ghibli-justify-around { justify-content: space-around; }
+.ghibli-justify-evenly { justify-content: space-evenly; }
+
+.ghibli-gap-0 { gap: 0; }
+.ghibli-gap-1 { gap: var(--space-1); }
+.ghibli-gap-2 { gap: var(--space-2); }
+.ghibli-gap-3 { gap: var(--space-3); }
+.ghibli-gap-4 { gap: var(--space-4); }
+.ghibli-gap-5 { gap: var(--space-5); }
+.ghibli-gap-6 { gap: var(--space-6); }
+.ghibli-gap-8 { gap: var(--space-8); }
+.ghibli-gap-10 { gap: var(--space-10); }
+.ghibli-gap-12 { gap: var(--space-12); }
+.ghibli-gap-16 { gap: var(--space-16); }
+
+/* ===== Grid 布局 ===== */
+.ghibli-grid { display: grid; }
+.ghibli-inline-grid { display: inline-grid; }
+
+.ghibli-grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.ghibli-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ghibli-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ghibli-grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ghibli-grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ghibli-grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.ghibli-grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+.ghibli-col-span-1 { grid-column: span 1 / span 1; }
+.ghibli-col-span-2 { grid-column: span 2 / span 2; }
+.ghibli-col-span-3 { grid-column: span 3 / span 3; }
+.ghibli-col-span-4 { grid-column: span 4 / span 4; }
+.ghibli-col-span-5 { grid-column: span 5 / span 5; }
+.ghibli-col-span-6 { grid-column: span 6 / span 6; }
+.ghibli-col-span-full { grid-column: 1 / -1; }
+
+.ghibli-grid-gap-0 { gap: 0; }
+.ghibli-grid-gap-2 { gap: var(--space-2); }
+.ghibli-grid-gap-4 { gap: var(--space-4); }
+.ghibli-grid-gap-6 { gap: var(--space-6); }
+.ghibli-grid-gap-8 { gap: var(--space-8); }
+
+/* ===== 间距 Spacing ===== */
+/* Margin */
+.ghibli-m-0 { margin: 0; }
+.ghibli-m-auto { margin: auto; }
+.ghibli-mx-auto { margin-left: auto; margin-right: auto; }
+.ghibli-my-auto { margin-top: auto; margin-bottom: auto; }
+
+.ghibli-mt-0 { margin-top: 0; }
+.ghibli-mr-0 { margin-right: 0; }
+.ghibli-mb-0 { margin-bottom: 0; }
+.ghibli-ml-0 { margin-left: 0; }
+
+.ghibli-mt-1 { margin-top: var(--space-1); }
+.ghibli-mr-1 { margin-right: var(--space-1); }
+.ghibli-mb-1 { margin-bottom: var(--space-1); }
+.ghibli-ml-1 { margin-left: var(--space-1); }
+
+.ghibli-mt-2 { margin-top: var(--space-2); }
+.ghibli-mr-2 { margin-right: var(--space-2); }
+.ghibli-mb-2 { margin-bottom: var(--space-2); }
+.ghibli-ml-2 { margin-left: var(--space-2); }
+
+.ghibli-mt-3 { margin-top: var(--space-3); }
+.ghibli-mr-3 { margin-right: var(--space-3); }
+.ghibli-mb-3 { margin-bottom: var(--space-3); }
+.ghibli-ml-3 { margin-left: var(--space-3); }
+
+.ghibli-mt-4 { margin-top: var(--space-4); }
+.ghibli-mr-4 { margin-right: var(--space-4); }
+.ghibli-mb-4 { margin-bottom: var(--space-4); }
+.ghibli-ml-4 { margin-left: var(--space-4); }
+
+.ghibli-mt-5 { margin-top: var(--space-5); }
+.ghibli-mr-5 { margin-right: var(--space-5); }
+.ghibli-mb-5 { margin-bottom: var(--space-5); }
+.ghibli-ml-5 { margin-left: var(--space-5); }
+
+.ghibli-mt-6 { margin-top: var(--space-6); }
+.ghibli-mr-6 { margin-right: var(--space-6); }
+.ghibli-mb-6 { margin-bottom: var(--space-6); }
+.ghibli-ml-6 { margin-left: var(--space-6); }
+
+.ghibli-mt-8 { margin-top: var(--space-8); }
+.ghibli-mr-8 { margin-right: var(--space-8); }
+.ghibli-mb-8 { margin-bottom: var(--space-8); }
+.ghibli-ml-8 { margin-left: var(--space-8); }
+
+.ghibli-mt-10 { margin-top: var(--space-10); }
+.ghibli-mr-10 { margin-right: var(--space-10); }
+.ghibli-mb-10 { margin-bottom: var(--space-10); }
+.ghibli-ml-10 { margin-left: var(--space-10); }
+
+.ghibli-mt-12 { margin-top: var(--space-12); }
+.ghibli-mr-12 { margin-right: var(--space-12); }
+.ghibli-mb-12 { margin-bottom: var(--space-12); }
+.ghibli-ml-12 { margin-left: var(--space-12); }
+
+.ghibli-mt-16 { margin-top: var(--space-16); }
+.ghibli-mr-16 { margin-right: var(--space-16); }
+.ghibli-mb-16 { margin-bottom: var(--space-16); }
+.ghibli-ml-16 { margin-left: var(--space-16); }
+
+/* 负边距 */
+.ghibli.-mt-1 { margin-top: calc(var(--space-1) * -1); }
+.ghibli.-mb-1 { margin-bottom: calc(var(--space-1) * -1); }
+.ghibli.-mt-2 { margin-top: calc(var(--space-2) * -1); }
+.ghibli.-mb-2 { margin-bottom: calc(var(--space-2) * -1); }
+.ghibli.-mt-4 { margin-top: calc(var(--space-4) * -1); }
+.ghibli.-mb-4 { margin-bottom: calc(var(--space-4) * -1); }
+
+/* Padding */
+.ghibli-p-0 { padding: 0; }
+
+.ghibli-pt-0 { padding-top: 0; }
+.ghibli-pr-0 { padding-right: 0; }
+.ghibli-pb-0 { padding-bottom: 0; }
+.ghibli-pl-0 { padding-left: 0; }
+
+.ghibli-pt-1 { padding-top: var(--space-1); }
+.ghibli-pr-1 { padding-right: var(--space-1); }
+.ghibli-pb-1 { padding-bottom: var(--space-1); }
+.ghibli-pl-1 { padding-left: var(--space-1); }
+
+.ghibli-pt-2 { padding-top: var(--space-2); }
+.ghibli-pr-2 { padding-right: var(--space-2); }
+.ghibli-pb-2 { padding-bottom: var(--space-2); }
+.ghibli-pl-2 { padding-left: var(--space-2); }
+
+.ghibli-pt-3 { padding-top: var(--space-3); }
+.ghibli-pr-3 { padding-right: var(--space-3); }
+.ghibli-pb-3 { padding-bottom: var(--space-3); }
+.ghibli-pl-3 { padding-left: var(--space-3); }
+
+.ghibli-pt-4 { padding-top: var(--space-4); }
+.ghibli-pr-4 { padding-right: var(--space-4); }
+.ghibli-pb-4 { padding-bottom: var(--space-4); }
+.ghibli-pl-4 { padding-left: var(--space-4); }
+
+.ghibli-pt-5 { padding-top: var(--space-5); }
+.ghibli-pr-5 { padding-right: var(--space-5); }
+.ghibli-pb-5 { padding-bottom: var(--space-5); }
+.ghibli-pl-5 { padding-left: var(--space-5); }
+
+.ghibli-pt-6 { padding-top: var(--space-6); }
+.ghibli-pr-6 { padding-right: var(--space-6); }
+.ghibli-pb-6 { padding-bottom: var(--space-6); }
+.ghibli-pl-6 { padding-left: var(--space-6); }
+
+.ghibli-pt-8 { padding-top: var(--space-8); }
+.ghibli-pr-8 { padding-right: var(--space-8); }
+.ghibli-pb-8 { padding-bottom: var(--space-8); }
+.ghibli-pl-8 { padding-left: var(--space-8); }
+
+.ghibli-pt-10 { padding-top: var(--space-10); }
+.ghibli-pr-10 { padding-right: var(--space-10); }
+.ghibli-pb-10 { padding-bottom: var(--space-10); }
+.ghibli-pl-10 { padding-left: var(--space-10); }
+
+.ghibli-pt-12 { padding-top: var(--space-12); }
+.ghibli-pr-12 { padding-right: var(--space-12); }
+.ghibli-pb-12 { padding-bottom: var(--space-12); }
+.ghibli-pl-12 { padding-left: var(--space-12); }
+
+.ghibli-pt-16 { padding-top: var(--space-16); }
+.ghibli-pr-16 { padding-right: var(--space-16); }
+.ghibli-pb-16 { padding-bottom: var(--space-16); }
+.ghibli-pl-16 { padding-left: var(--space-16); }
+
+/* ===== 尺寸 Sizing ===== */
+.ghibli-w-full { width: 100%; }
+.ghibli-w-screen { width: 100vw; }
+.ghibli-w-auto { width: auto; }
+.ghibli-w-fit { width: fit-content; }
+.ghibli-w-min { width: min-content; }
+.ghibli-w-max { width: max-content; }
+
+.ghibli-h-full { height: 100%; }
+.ghibli-h-screen { height: 100vh; }
+.ghibli-h-auto { height: auto; }
+.ghibli-h-fit { height: fit-content; }
+.ghibli-h-min { height: min-content; }
+.ghibli-h-max { height: max-content; }
+
+.ghibli-min-w-0 { min-width: 0; }
+.ghibli-min-h-0 { min-height: 0; }
+.ghibli-min-h-screen { min-height: 100vh; }
+
+.ghibli-max-w-xs { max-width: var(--container-sm); }
+.ghibli-max-w-sm { max-width: 384px; }
+.ghibli-max-w-md { max-width: 448px; }
+.ghibli-max-w-lg { max-width: 512px; }
+.ghibli-max-w-xl { max-width: 576px; }
+.ghibli-max-w-2xl { max-width: 672px; }
+.ghibli-max-w-3xl { max-width: 768px; }
+.ghibli-max-w-4xl { max-width: 896px; }
+.ghibli-max-w-5xl { max-width: 1024px; }
+.ghibli-max-w-6xl { max-width: 1152px; }
+.ghibli-max-w-7xl { max-width: 1280px; }
+.ghibli-max-w-full { max-width: 100%; }
+.ghibli-max-w-screen { max-width: 100vw; }
+
+/* ===== 文字排版 Typography ===== */
+.ghibli-font-display { font-family: var(--font-display); }
+.ghibli-font-body { font-family: var(--font-body); }
+.ghibli-font-mono { font-family: var(--font-mono); }
+.ghibli-font-handwriting { font-family: var(--font-handwriting); }
+
+.ghibli-text-xs { font-size: var(--text-xs); }
+.ghibli-text-sm { font-size: var(--text-sm); }
+.ghibli-text-base { font-size: var(--text-base); }
+.ghibli-text-lg { font-size: var(--text-lg); }
+.ghibli-text-xl { font-size: var(--text-xl); }
+.ghibli-text-2xl { font-size: var(--text-2xl); }
+.ghibli-text-3xl { font-size: var(--text-3xl); }
+.ghibli-text-4xl { font-size: var(--text-4xl); }
+.ghibli-text-5xl { font-size: var(--text-5xl); }
+.ghibli-text-6xl { font-size: var(--text-6xl); }
+
+.ghibli-font-light { font-weight: var(--font-light); }
+.ghibli-font-normal { font-weight: var(--font-normal); }
+.ghibli-font-medium { font-weight: var(--font-medium); }
+.ghibli-font-semibold { font-weight: var(--font-semibold); }
+.ghibli-font-bold { font-weight: var(--font-bold); }
+
+.ghibli-leading-tight { line-height: var(--leading-tight); }
+.ghibli-leading-normal { line-height: var(--leading-normal); }
+.ghibli-leading-relaxed { line-height: var(--leading-relaxed); }
+.ghibli-leading-loose { line-height: var(--leading-loose); }
+
+.ghibli-text-left { text-align: left; }
+.ghibli-text-center { text-align: center; }
+.ghibli-text-right { text-align: right; }
+.ghibli-text-justify { text-align: justify; }
+
+.ghibli-text-primary { color: var(--color-primary); }
+.ghibli-text-secondary { color: var(--color-secondary); }
+.ghibli-text-accent { color: var(--color-accent); }
+.ghibli-text-warm { color: var(--color-warm); }
+.ghibli-text-success { color: var(--color-success); }
+.ghibli-text-warning { color: var(--color-warning); }
+.ghibli-text-error { color: var(--color-error); }
+
+.ghibli-text { color: var(--color-text); }
+.ghibli-text-muted { color: var(--color-text-muted); }
+.ghibli-text-light { color: var(--color-text-light); }
+.ghibli-text-inverse { color: var(--ghibli-paper-50); }
+
+.ghibli-italic { font-style: italic; }
+.ghibli-not-italic { font-style: normal; }
+.ghibli-underline { text-decoration: underline; }
+.ghibli-no-underline { text-decoration: none; }
+.ghibli-line-through { text-decoration: line-through; }
+
+.ghibli-uppercase { text-transform: uppercase; }
+.ghibli-lowercase { text-transform: lowercase; }
+.ghibli-capitalize { text-transform: capitalize; }
+.ghibli-normal-case { text-transform: none; }
+
+.ghibli-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ghibli-text-balance { text-wrap: balance; }
+.ghibli-text-pretty { text-wrap: pretty; }
+
+/* ===== 背景 Background ===== */
+.ghibli-bg-primary { background-color: var(--color-primary); }
+.ghibli-bg-secondary { background-color: var(--color-secondary); }
+.ghibli-bg-accent { background-color: var(--color-accent); }
+.ghibli-bg-warm { background-color: var(--color-warm); }
+.ghibli-bg-success { background-color: var(--color-success); }
+.ghibli-bg-warning { background-color: var(--color-warning); }
+.ghibli-bg-error { background-color: var(--color-error); }
+
+.ghibli-bg { background-color: var(--color-bg); }
+.ghibli-bg-elevated { background-color: var(--color-bg-elevated); }
+.ghibli-bg-card { background-color: var(--color-bg-card); }
+.ghibli-bg-paper { background-color: var(--ghibli-paper-100); }
+
+.ghibli-bg-gradient-primary {
+  background: linear-gradient(135deg, var(--ghibli-sky-400), var(--ghibli-sky-600));
+}
+.ghibli-bg-gradient-secondary {
+  background: linear-gradient(135deg, var(--ghibli-forest-400), var(--ghibli-forest-600));
+}
+.ghibli-bg-gradient-accent {
+  background: linear-gradient(135deg, var(--ghibli-sun-400), var(--ghibli-sun-600));
+}
+.ghibli-bg-gradient-warm {
+  background: linear-gradient(135deg, var(--ghibli-warm-400), var(--ghibli-warm-600));
+}
+.ghibli-bg-gradient-rainbow {
+  background: linear-gradient(90deg, var(--ghibli-sky-400), var(--ghibli-forest-400), var(--ghibli-sun-400), var(--ghibli-warm-400), var(--ghibli-sakura-400));
+}
+
+/* ===== 边框 Border ===== */
+.ghibli-border { border: 1px solid var(--color-border); }
+.ghibli-border-2 { border: 2px solid var(--color-border); }
+.ghibli-border-0 { border: 0; }
+
+.ghibli-border-t { border-top: 1px solid var(--color-border); }
+.ghibli-border-r { border-right: 1px solid var(--color-border); }
+.ghibli-border-b { border-bottom: 1px solid var(--color-border); }
+.ghibli-border-l { border-left: 1px solid var(--color-border); }
+
+.ghibli-border-primary { border-color: var(--color-primary); }
+.ghibli-border-secondary { border-color: var(--color-secondary); }
+.ghibli-border-accent { border-color: var(--color-accent); }
+.ghibli-border-error { border-color: var(--color-error); }
+
+.ghibli-rounded-none { border-radius: var(--radius-none); }
+.ghibli-rounded-sm { border-radius: var(--radius-sm); }
+.ghibli-rounded { border-radius: var(--radius-md); }
+.ghibli-rounded-md { border-radius: var(--radius-md); }
+.ghibli-rounded-lg { border-radius: var(--radius-lg); }
+.ghibli-rounded-xl { border-radius: var(--radius-xl); }
+.ghibli-rounded-2xl { border-radius: var(--radius-2xl); }
+.ghibli-rounded-3xl { border-radius: var(--radius-3xl); }
+.ghibli-rounded-full { border-radius: var(--radius-full); }
+.ghibli-rounded-organic { border-radius: var(--radius-organic); }
+
+/* ===== 阴影 Shadow ===== */
+.ghibli-shadow-none { box-shadow: none; }
+.ghibli-shadow-xs { box-shadow: var(--shadow-xs); }
+.ghibli-shadow-sm { box-shadow: var(--shadow-sm); }
+.ghibli-shadow { box-shadow: var(--shadow-md); }
+.ghibli-shadow-md { box-shadow: var(--shadow-md); }
+.ghibli-shadow-lg { box-shadow: var(--shadow-lg); }
+.ghibli-shadow-xl { box-shadow: var(--shadow-xl); }
+.ghibli-shadow-2xl { box-shadow: var(--shadow-2xl); }
+
+.ghibli-shadow-primary { box-shadow: var(--shadow-primary); }
+.ghibli-shadow-accent { box-shadow: var(--shadow-accent); }
+.ghibli-shadow-glow { box-shadow: var(--shadow-glow); }
+
+/* ===== 过渡 Transition ===== */
+.ghibli-transition-none { transition: none; }
+.ghibli-transition-all { transition: var(--transition-gentle); }
+.ghibli-transition { transition: var(--transition-gentle); }
+.ghibli-transition-fast { transition: all var(--duration-fast) var(--ease-gentle); }
+.ghibli-transition-slow { transition: all var(--duration-slow) var(--ease-gentle); }
+.ghibli-transition-bounce { transition: var(--transition-bounce); }
+.ghibli-transition-spring { transition: var(--transition-spring); }
+
+/* ===== 溢出 Overflow ===== */
+.ghibli-overflow-auto { overflow: auto; }
+.ghibli-overflow-hidden { overflow: hidden; }
+.ghibli-overflow-visible { overflow: visible; }
+.ghibli-overflow-scroll { overflow: scroll; }
+.ghibli-overflow-x-auto { overflow-x: auto; }
+.ghibli-overflow-y-auto { overflow-y: auto; }
+.ghibli-overflow-x-hidden { overflow-x: hidden; }
+.ghibli-overflow-y-hidden { overflow-y: hidden; }
+
+.ghibli-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ghibli-whitespace-nowrap { white-space: nowrap; }
+.ghibli-whitespace-normal { white-space: normal; }
+.ghibli-whitespace-pre { white-space: pre; }
+.ghibli-break-all { word-break: break-all; }
+.ghibli-break-words { overflow-wrap: break-word; }
+
+/* ===== 定位 Position ===== */
+.ghibli-static { position: static; }
+.ghibli-relative { position: relative; }
+.ghibli-absolute { position: absolute; }
+.ghibli-fixed { position: fixed; }
+.ghibli-sticky { position: sticky; }
+
+.ghibli-inset-0 { inset: 0; }
+.ghibli-top-0 { top: 0; }
+.ghibli-right-0 { right: 0; }
+.ghibli-bottom-0 { bottom: 0; }
+.ghibli-left-0 { left: 0; }
+
+.ghibli-z-0 { z-index: 0; }
+.ghibli-z-10 { z-index: 10; }
+.ghibli-z-20 { z-index: 20; }
+.ghibli-z-30 { z-index: 30; }
+.ghibli-z-40 { z-index: 40; }
+.ghibli-z-50 { z-index: 50; }
+.ghibli-z-auto { z-index: auto; }
+
+/* ===== 光标 Cursor ===== */
+.ghibli-cursor-auto { cursor: auto; }
+.ghibli-cursor-default { cursor: default; }
+.ghibli-cursor-pointer { cursor: pointer; }
+.ghibli-cursor-wait { cursor: wait; }
+.ghibli-cursor-text { cursor: text; }
+.ghibli-cursor-move { cursor: move; }
+.ghibli-cursor-not-allowed { cursor: not-allowed; }
+.ghibli-cursor-help { cursor: help; }
+.ghibli-cursor-grab { cursor: grab; }
+.ghibli-cursor-grabbing { cursor: grabbing; }
+
+/* ===== 用户选择 User Select ===== */
+.ghibli-select-none { user-select: none; }
+.ghibli-select-text { user-select: text; }
+.ghibli-select-all { user-select: all; }
+.ghibli-select-auto { user-select: auto; }
+
+/* ===== 指针事件 Pointer Events ===== */
+.ghibli-pointer-none { pointer-events: none; }
+.ghibli-pointer-auto { pointer-events: auto; }
+
+/* ===== 可见性 Visibility ===== */
+.ghibli-visible { visibility: visible; }
+.ghibli-invisible { visibility: hidden; }
+
+/* ===== 列表 List ===== */
+.ghibli-list-none { list-style: none; }
+.ghibli-list-disc { list-style: disc; }
+.ghibli-list-decimal { list-style: decimal; }
+
+/* ===== 表格 Table ===== */
+.ghibli-table-auto { table-layout: auto; }
+.ghibli-table-fixed { table-layout: fixed; }
+
+/* ===== 容器 Container ===== */
+.ghibli-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+@media (min-width: 640px) {
+  .ghibli-container { max-width: var(--container-sm); }
+}
+@media (min-width: 768px) {
+  .ghibli-container { max-width: var(--container-md); }
+}
+@media (min-width: 1024px) {
+  .ghibli-container { max-width: var(--container-lg); }
+}
+@media (min-width: 1280px) {
+  .ghibli-container { max-width: var(--container-xl); }
+}
+@media (min-width: 1440px) {
+  .ghibli-container { max-width: var(--container-2xl); }
+}
+
+/* ===== 响应式断点 Responsive ===== */
+/* sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1440px */
+
+@media (min-width: 640px) {
+  .sm\:ghibli-hidden { display: none !important; }
+  .sm\:ghibli-flex { display: flex; }
+  .sm\:ghibli-grid { display: grid; }
+  .sm\:ghibli-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sm\:ghibli-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 768px) {
+  .md\:ghibli-hidden { display: none !important; }
+  .md\:ghibli-flex { display: flex; }
+  .md\:ghibli-grid { display: grid; }
+  .md\:ghibli-grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .md\:ghibli-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .md\:ghibli-grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:ghibli-flex-row { flex-direction: row; }
+  .md\:ghibli-flex-col { flex-direction: column; }
+  .md\:ghibli-text-left { text-align: left; }
+  .md\:ghibli-text-center { text-align: center; }
+}
+
+@media (min-width: 1024px) {
+  .lg\:ghibli-hidden { display: none !important; }
+  .lg\:ghibli-flex { display: flex; }
+  .lg\:ghibli-grid { display: grid; }
+  .lg\:ghibli-grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lg\:ghibli-grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lg\:ghibli-grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .lg\:ghibli-flex-row { flex-direction: row; }
+}
+
+@media (min-width: 1280px) {
+  .xl\:ghibli-hidden { display: none !important; }
+  .xl\:ghibli-grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .xl\:ghibli-grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .xl\:ghibli-grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* ===== 打印 Print ===== */
+@media print {
+  .print\:ghibli-hidden { display: none !important; }
+  .print\:ghibli-block { display: block !important; }
+  .print\:ghibli-text { color: #000 !important; }
+  .print\:ghibli-bg-white { background: #fff !important; }
+}
+
+/* ===== 专用吉卜力工具类 ===== */
+
+/* 页面容器 - 带装饰边框 */
+.ghibli-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  position: relative;
+}
+
+.ghibli-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(251, 191, 36, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 10% 10%, rgba(14, 165, 233, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 90% 80%, rgba(34, 197, 94, 0.03) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 卡片悬浮效果 */
+.ghibli-hover-lift {
+  transition: var(--transition-gentle);
+}
+
+.ghibli-hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-xl);
+}
+
+/* 点击波纹 */
+.ghibli-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ghibli-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ghibli-ripple:active::after {
+  animation: ripple 0.6s ease-out;
+}
+
+/* 玻璃态效果 */
+.ghibli-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.ghibli-glass-dark {
+  background: rgba(28, 25, 23, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 文字描边 */
+.ghibli-text-stroke {
+  -webkit-text-stroke: 1px var(--ghibli-ink-800);
+  color: transparent;
+}
+
+.ghibli-text-stroke-sm {
+  -webkit-text-stroke: 0.5px var(--ghibli-ink-800);
+  color: transparent;
+}
+
+/* 渐变文字 */
+.ghibli-text-gradient {
+  background: linear-gradient(135deg, var(--ghibli-sky-500), var(--ghibli-forest-500), var(--ghibli-sun-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ghibli-text-gradient-warm {
+  background: linear-gradient(135deg, var(--ghibli-warm-500), var(--ghibli-sun-500), var(--ghibli-sakura-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 装饰性下划线 */
+.ghibli-underline-decor {
+  position: relative;
+}
+
+.ghibli-underline-decor::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ghibli-sky-400), var(--ghibli-forest-400), var(--ghibli-sun-400));
+  border-radius: 2px;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+.ghibli-underline-decor:hover::after {
+  transform: scaleX(1);
+}
+
+/* 焦点可见 */
+.ghibli-focus-ring:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring), var(--shadow-md);
+}
+
+/* 滚动条美化 */
+.ghibli-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ghibli-scrollbar::-webkit-scrollbar-track {
+  background: var(--ghibli-paper-100);
+  border-radius: var(--radius-full);
+}
+
+.ghibli-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--ghibli-sky-300), var(--ghibli-forest-300));
+  border-radius: var(--radius-full);
+  border: 2px solid var(--ghibli-paper-100);
+}
+
+.ghibli-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--ghibli-sky-400), var(--ghibli-forest-400));
+}
+
+.ghibli-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox 滚动条 */
+.ghibli-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ghibli-sky-400) var(--ghibli-paper-100);
+}
+
+/* 选择文本 */
+.ghibli-select-text::selection {
+  background: var(--ghibli-sky-200);
+  color: var(--ghibli-ink-800);
+}
+
+/* ===== 组合模式工具类 ===== */
+
+/* 英雄区域 */
+.ghibli-hero {
+  position: relative;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-20) var(--space-6);
+  overflow: hidden;
+}
+
+.ghibli-hero__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.ghibli-hero__content {
+  position: relative;
+  z-index: 1;
+  max-width: var(--container-xl);
+  width: 100%;
+  text-align: center;
+}
+
+/* 区块容器 */
+.ghibli-section {
+  padding: var(--space-20) var(--space-6);
+  position: relative;
+}
+
+.ghibli-section__header {
+  max-width: var(--container-lg);
+  margin: 0 auto var(--space-12);
+  text-align: center;
+}
+
+.ghibli-section__title {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
+  position: relative;
+  display: inline-block;
+}
+
+.ghibli-section__title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ghibli-sky-400), var(--ghibli-forest-400), var(--ghibli-sun-400));
+  border-radius: 2px;
+}
+
+.ghibli-section__desc {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: var(--leading-relaxed);
+}
+
+.ghibli-section__content {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+}
+
+/* 网格卡片布局 */
+.ghibli-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 640px) {
+  .ghibli-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .ghibli-cards { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1440px) {
+  .ghibli-cards { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* 表单组 */
+.ghibli-form-group {
+  margin-bottom: var(--space-6);
+}
+
+.ghibli-form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .ghibli-form-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ===== 品牌专用类 ===== */
+.ghibli-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: inherit;
+}
+
+.ghibli-logo__icon {
+  width: 48px;
+  height: 48px;
+  animation: slowRotate 20s linear infinite;
+}
+
+.ghibli-logo__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.ghibli-logo__main {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  background: linear-gradient(135deg, var(--ghibli-ink-700), var(--ghibli-sky-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ghibli-logo__sub {
+  font-family: var(--font-handwriting);
+  font-size: var(--text-sm);
+  color: var(--ghibli-sky-600);
+  letter-spacing: 0.2em;
+  margin-top: 2px;
+}

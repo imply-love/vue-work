@@ -1,20 +1,63 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#0d0d0d">
+    <meta name="description" content="云墨江湖 - 一笔云墨，绘尽江湖梦。探索武侠世界，结识侠客好友，修习绝世武功。">
+    <meta name="keywords" content="云墨江湖,武侠,江湖,侠客,武功,小说,社区">
+    <meta name="author" content="云墨江湖团队">
     <title>云墨江湖</title>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yunmo-jianghu.com/">
+    <meta property="og:title" content="云墨江湖 - 一笔云墨，绘尽江湖梦">
+    <meta property="og:description" content="探索武侠世界，结识侠客好友，修习绝世武功。云墨江湖，您的江湖梦开始的地方。">
+    <meta property="og:image" content="/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yunmo-jianghu.com/">
+    <meta property="twitter:title" content="云墨江湖 - 一笔云墨，绘尽江湖梦">
+    <meta property="twitter:description" content="探索武侠世界，结识侠客好友，修习绝世武功。">
+    <meta property="twitter:image" content="/og-image.jpg">
+
+    <!-- 预连接字体服务 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+
+    <!-- 字体加载 - 使用本地字体优先，回退到 Google Fonts -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+
+    <!-- 预加载关键资源 -->
+    <link rel="preload" as="image" href="/hero-bg.jpg">
+
+    <!-- 禁止缩放/搜索引擎特定 -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="robots" content="index, follow">
+
+    <!-- PWA 支持 -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="云墨江湖">
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
+
+    <!-- 字体加载回退方案 -->
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+      <style>
+        /* 无 JS 时的基础样式 */
+        body { opacity: 1; }
+        #app { display: block; }
+      </style>
+    </noscript>
   </body>
-  <style>
-    *{
-      padding: 0px;
-      top: 0px;
-      left: 0px;
-    }
-  </style>
 </html>

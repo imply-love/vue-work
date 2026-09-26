@@ -1,0 +1,10 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 外环 -->
+  <circle cx="24" cy="24" r="22" stroke="#c9a84c" stroke-width="2"/>
+  <!-- 阴阳鱼 -->
+  <path d="M14 24 Q24 14 34 24 Q24 34 14 24" stroke="#c9a84c" stroke-width="2" fill="none"/>
+  <!-- 中心点 -->
+  <circle cx="24" cy="24" r="6" fill="#c9a84c"/>
+  <!-- 分割线 -->
+  <path d="M24 14 L24 34" stroke="#c9a84c" stroke-width="1.5" stroke-dasharray="4 4"/>
+</svg>

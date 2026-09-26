@@ -1,0 +1,271 @@
+/* ========================================
+   GHIBLI DESIGN TOKENS - 宫崎骏/吉卜力设计令牌
+   灵感来源：龙猫、千与千寻、魔女宅急便、哈尔的移动城堡、悬崖上的金鱼姬
+   ======================================== */
+
+:root {
+  /* ===== 色彩系统 Color System ===== */
+
+  /* 主色调 - 天空与海洋 */
+  --ghibli-sky-50: #f0f9ff;
+  --ghibli-sky-100: #e0f2fe;
+  --ghibli-sky-200: #bae6fd;
+  --ghibli-sky-300: #7dd3fc;
+  --ghibli-sky-400: #38bdf8;
+  --ghibli-sky-500: #0ea5e9;  /* 主品牌色 - 清澈天空 */
+  --ghibli-sky-600: #0284c7;
+  --ghibli-sky-700: #0369a1;
+  --ghibli-sky-800: #075985;
+  --ghibli-sky-900: #0c4a6e;
+
+  /* 次要色 - 森林与大地 */
+  --ghibli-forest-50: #f0fdf4;
+  --ghibli-forest-100: #dcfce7;
+  --ghibli-forest-200: #bbf7d0;
+  --ghibli-forest-300: #86efac;
+  --ghibli-forest-400: #4ade80;
+  --ghibli-forest-500: #22c55e;  /* 次要品牌色 - 生机森林 */
+  --ghibli-forest-600: #16a34a;
+  --ghibli-forest-700: #15803d;
+  --ghibli-forest-800: #166534;
+  --ghibli-forest-900: #14532d;
+
+  /* 强调色 - 阳光与温暖 */
+  --ghibli-sun-50: #fffbeb;
+  --ghibli-sun-100: #fef3c7;
+  --ghibli-sun-200: #fde68a;
+  --ghibli-sun-300: #fcd34d;
+  --ghibli-sun-400: #fbbf24;  /* 强调色 - 金色阳光 */
+  --ghibli-sun-500: #f59e0b;
+  --ghibli-sun-600: #d97706;
+  --ghibli-sun-700: #b45309;
+  --ghibli-sun-800: #92400e;
+  --ghibli-sun-900: #78350f;
+
+  /* 温暖色 - 土壤、木材、复古 */
+  --ghibli-warm-50: #fdf8f3;
+  --ghibli-warm-100: #faefdf;
+  --ghibli-warm-200: #f5dcc4;
+  --ghibli-warm-300: #edc195;
+  --ghibli-warm-400: #e2a060;
+  --ghibli-warm-500: #d48a3a;  /* 温暖主色 - 陶土/木材 */
+  --ghibli-warm-600: #c4732e;
+  --ghibli-warm-700: #a85d24;
+  --ghibli-warm-800: #8a4a20;
+  --ghibli-warm-900: #713d1d;
+
+  /* 樱花粉 - 柔和、梦幻 */
+  --ghibli-sakura-50: #fdf2f8;
+  --ghibli-sakura-100: #fce7f3;
+  --ghibli-sakura-200: #fbcfe8;
+  --ghibli-sakura-300: #f9a8d4;
+  --ghibli-sakura-400: #f472b6;
+  --ghibli-sakura-500: #ec4899;
+  --ghibli-sakura-600: #db2777;
+  --ghibli-sakura-700: #be185d;
+  --ghibli-sakura-800: #9d174d;
+  --ghibli-sakura-900: #831843;
+
+  /* 语义化色彩映射 */
+  --color-primary: var(--ghibli-sky-500);
+  --color-primary-light: var(--ghibli-sky-300);
+  --color-primary-dark: var(--ghibli-sky-700);
+  --color-secondary: var(--ghibli-forest-500);
+  --color-accent: var(--ghibli-sun-400);
+  --color-warm: var(--ghibli-warm-500);
+
+  /* 中性色 - 纸张、墨水、炭笔 */
+  --ghibli-paper-50: #fafaf6;
+  --ghibli-paper-100: #f5f3ee;
+  --ghibli-paper-200: #ebe7df;
+  --ghibli-paper-300: #ddd8cd;
+  --ghibli-paper-400: #c4bdb0;
+  --ghibli-paper-500: #a8a090;
+  --ghibli-paper-600: #8c8474;
+  --ghibli-paper-700: #716a5c;
+  --ghibli-paper-800: #5d574c;
+  --ghibli-paper-900: #4e4940;
+
+  --ghibli-ink-50: #f5f5f4;
+  --ghibli-ink-100: #e7e5e4;
+  --ghibli-ink-200: #d6d3d1;
+  --ghibli-ink-300: #a8a29e;
+  --ghibli-ink-400: #78716c;
+  --ghibli-ink-500: #57534e;
+  --ghibli-ink-600: #44403c;
+  --ghibli-ink-700: #36322e;  /* 主文字色 - 炭笔黑 */
+  --ghibli-ink-800: #292524;
+  --ghibli-ink-900: #1c1917;
+
+  /* 语义化中性色 */
+  --color-bg: var(--ghibli-paper-50);
+  --color-bg-elevated: #ffffff;
+  --color-bg-card: #fefefe;
+  --color-text: var(--ghibli-ink-700);
+  --color-text-muted: var(--ghibli-ink-400);
+  --color-text-light: var(--ghibli-ink-500);
+  --color-border: var(--ghibli-paper-200);
+  --color-border-strong: var(--ghibli-paper-300);
+  --color-divider: var(--ghibli-paper-200);
+
+  /* 状态色 */
+  --color-success: var(--ghibli-forest-500);
+  --color-success-bg: var(--ghibli-forest-50);
+  --color-warning: var(--ghibli-sun-500);
+  --color-warning-bg: var(--ghibli-sun-50);
+  --color-error: #e57373;
+  --color-error-bg: #fef2f2;
+  --color-info: var(--ghibli-sky-500);
+  --color-info-bg: var(--ghibli-sky-50);
+
+  /* ===== 字体系统 Typography ===== */
+  --font-display: 'Noto Serif SC', 'Source Han Serif', 'ZCOOL KuaiLe', 'Ma Shan Zheng', 'PingFang SC', 'Microsoft YaHei', serif;
+  --font-body: 'Noto Sans SC', 'Source Han Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-handwriting: 'ZCOOL KuaiLe', 'Ma Shan Zheng', 'Noto Serif SC', cursive;  /* 手写感字体 */
+
+  /* 字号阶梯 */
+  --text-xs: 0.7rem;      /* 11px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 0.9375rem; /* 15px */
+  --text-lg: 1.0625rem;   /* 17px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 2rem;       /* 32px */
+  --text-4xl: 2.5rem;     /* 40px */
+  --text-5xl: 3.5rem;     /* 56px */
+  --text-6xl: 5rem;       /* 80px */
+
+  /* 行高 */
+  --leading-tight: 1.2;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+  --leading-loose: 2;
+
+  /* 字重 */
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ===== 间距系统 Spacing ===== */
+  --space-0: 0;
+  --space-1: 0.125rem;   /* 2px */
+  --space-2: 0.25rem;    /* 4px */
+  --space-3: 0.375rem;   /* 6px */
+  --space-4: 0.5rem;     /* 8px */
+  --space-5: 0.625rem;   /* 10px */
+  --space-6: 0.75rem;    /* 12px */
+  --space-8: 1rem;       /* 16px */
+  --space-10: 1.25rem;   /* 20px */
+  --space-12: 1.5rem;    /* 24px */
+  --space-16: 2rem;      /* 32px */
+  --space-20: 2.5rem;    /* 40px */
+  --space-24: 3rem;      /* 48px */
+  --space-32: 4rem;      /* 64px */
+  --space-40: 5rem;      /* 80px */
+  --space-48: 6rem;      /* 96px */
+
+  /* ===== 圆角系统 Border Radius ===== */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-3xl: 2rem;      /* 32px */
+  --radius-full: 9999px;
+  --radius-organic: 2rem 1rem 2rem 1rem / 1rem 2rem 1rem 2rem;  /* 有机圆角 */
+
+  /* ===== 阴影系统 Shadows ===== */
+  --shadow-xs: 0 1px 2px rgba(60, 56, 52, 0.04);
+  --shadow-sm: 0 2px 8px rgba(60, 56, 52, 0.06);
+  --shadow-md: 0 4px 16px rgba(60, 56, 52, 0.08);
+  --shadow-lg: 0 8px 32px rgba(60, 56, 52, 0.1);
+  --shadow-xl: 0 16px 48px rgba(60, 56, 52, 0.12);
+  --shadow-2xl: 0 24px 64px rgba(60, 56, 52, 0.15);
+
+  /* 彩色阴影 */
+  --shadow-primary: 0 8px 32px rgba(14, 165, 233, 0.25);
+  --shadow-accent: 0 8px 32px rgba(251, 191, 36, 0.3);
+  --shadow-warm: 0 8px 32px rgba(212, 138, 58, 0.25);
+  --shadow-glow: 0 0 40px rgba(251, 191, 36, 0.4);
+
+  /* ===== 过渡动画 Transitions ===== */
+  --ease-gentle: cubic-bezier(0.25, 0.46, 0.45, 0.94);     /* 温柔缓动 */
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);   /* 弹跳缓动 */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);  /* 弹簧缓动 */
+  --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);  /* 弹性缓动 */
+
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 800ms;
+
+  --transition-gentle: all var(--duration-normal) var(--ease-gentle);
+  --transition-bounce: all var(--duration-slow) var(--ease-bounce);
+  --transition-spring: all var(--duration-slow) var(--ease-spring);
+
+  /* ===== 层级系统 Z-Index ===== */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+
+  /* ===== 容器宽度 ===== */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1440px;
+  --container-full: 100%;
+
+  /* ===== 网格系统 ===== */
+  --grid-cols: 12;
+  --grid-gap: var(--space-6);
+
+  /* ===== 焦点环 ===== */
+  --focus-ring: 0 0 0 3px var(--ghibli-sky-200);
+  --focus-ring-offset: 2px;
+}
+
+/* ===== 深色模式适配 ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1c1917;
+    --color-bg-elevated: #292524;
+    --color-bg-card: #292524;
+    --color-text: #fafaf6;
+    --color-text-muted: #a8a29e;
+    --color-text-light: #d6d3d1;
+    --color-border: #44403c;
+    --color-border-strong: #57534e;
+    --color-divider: #44403c;
+  }
+}
+
+/* ===== 减少动画偏好 ===== */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+}
+
+/* ===== 高对比度模式 ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: var(--color-text);
+    --color-border-strong: var(--color-text);
+    --focus-ring: 0 0 0 4px var(--color-primary);
+  }
+}

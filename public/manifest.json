@@ -1,0 +1,21 @@
+{
+  "name": "云墨江湖",
+  "short_name": "云墨",
+  "description": "一笔云墨，绘尽江湖梦 - 探索武侠世界，结识侠客好友，修习绝世武功",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0d",
+  "theme_color": "#c9a84c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "books", "social"],
+  "lang": "zh-CN",
+  "dir": "ltr"
+}
