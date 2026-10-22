@@ -1,11 +1,11 @@
 {
-  "name": "云墨江湖",
-  "short_name": "云墨",
-  "description": "一笔云墨，绘尽江湖梦 - 探索武侠世界，结识侠客好友，修习绝世武功",
+  "name": "番剧同好会",
+  "short_name": "番剧同好会",
+  "description": "追番、安利、找同好 - 一起聊新番旧番，分享资源与神作安利",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0d0d",
-  "theme_color": "#c9a84c",
+  "background_color": "#fafaf6",
+  "theme_color": "#0ea5e9",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -1,10 +1,75 @@
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import Head from './views/head.vue'
 
 // 页面加载进度条
 const loadProgress = ref(0)
 let progressTimer = null
+
+// 全局装饰与吐司容器（模板里通过 ref="particlesContainer" / ref="toastContainer" 绑定）
+const particlesContainer = ref(null)
+const toastContainer = ref(null)
+
+// 创建飞行粒子
+const createParticles = () => {
+  if (!particlesContainer.value) return
+
+  for (let i = 0; i < 15; i++) {
+    const particle = document.createElement('div')
+    particle.className = 'ghibli-app__particle'
+    particle.style.cssText = `
+      --tx: ${(Math.random() - 0.5) * 200}px;
+      --ty: ${-Math.random() * 100}px;
+      left: ${Math.random() * 100}%;
+      top: ${80 + Math.random() * 20}%;
+      animation-delay: ${Math.random() * 8}s;
+      animation-duration: ${10 + Math.random() * 10}s;
+      background: ${['var(--ghibli-sun-300)', 'var(--ghibli-sky-300)', 'var(--ghibli-forest-300)', 'var(--ghibli-sakura-300)'][Math.floor(Math.random() * 4)]};
+    `
+    particlesContainer.value.appendChild(particle)
+  }
+}
+
+// 显示吐司
+const showToast = (options) => {
+  if (!toastContainer.value) return
+
+  const toast = document.createElement('div')
+  toast.className = `ghibli-toast__item ghibli-toast__item--${options.type || 'info'}`
+  toast.innerHTML = `
+    <svg class="ghibli-toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      ${options.type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : ''}
+      ${options.type === 'error' ? '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' : ''}
+      ${options.type === 'warning' ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' : ''}
+      ${options.type === 'info' ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>' : ''}
+    </svg>
+    <div class="ghibli-toast__content">
+      ${options.title ? `<div class="ghibli-toast__title">${options.title}</div>` : ''}
+      ${options.message ? `<div class="ghibli-toast__message">${options.message}</div>` : ''}
+    </div>
+    <button class="ghibli-toast__close" aria-label="关闭">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  `
+
+  toast.querySelector('.ghibli-toast__close')?.addEventListener('click', () => {
+    toast.style.animation = 'toastEnter 0.2s var(--ease-gentle) reverse forwards'
+    setTimeout(() => toast.remove(), 200)
+  })
+
+  toastContainer.value.appendChild(toast)
+
+  // 自动移除
+  setTimeout(() => {
+    if (toast.parentNode) {
+      toast.style.animation = 'toastEnter 0.3s var(--ease-gentle) reverse forwards'
+      setTimeout(() => toast.remove(), 300)
+    }
+  }, options.duration || 4000)
+}
+
+// 暴露给全局
+window.$ghibli = { showToast, createParticles }
 
 onMounted(() => {
   // 模拟页面加载进度
@@ -82,11 +147,11 @@ onUnmounted(() => {
           </svg>
         </div>
         <p class="ghibli-app__footer-copyright">
-          <span class="ghibli-text-gradient-warm">云墨江湖</span> ·
-          <span class="ghibli-font-handwriting">一笔云墨，绘尽江湖梦</span>
+          <span class="ghibli-text-gradient-warm">番剧同好会</span> ·
+          <span class="ghibli-font-handwriting">追番、安利、找同好</span>
         </p>
         <p class="ghibli-app__footer-tagline">
-          愿风指引你的方向，愿阳光温暖你的旅程 🍃
+          愿你追的番永不弃坑，愿你遇见的同好都懂你 ✨
         </p>
       </div>
     </footer>
@@ -97,81 +162,6 @@ onUnmounted(() => {
     </Teleport>
   </div>
 </template>
-
-<script>
-import { ref } from 'vue'
-
-export default {
-  setup() {
-    const loadProgress = ref(0)
-    const particlesContainer = ref(null)
-    const toastContainer = ref(null)
-
-    // 创建飞行粒子
-    const createParticles = () => {
-      if (!particlesContainer.value) return
-
-      for (let i = 0; i < 15; i++) {
-        const particle = document.createElement('div')
-        particle.className = 'ghibli-app__particle'
-        particle.style.cssText = `
-          --tx: ${(Math.random() - 0.5) * 200}px;
-          --ty: ${-Math.random() * 100}px;
-          left: ${Math.random() * 100}%;
-          top: ${80 + Math.random() * 20}%;
-          animation-delay: ${Math.random() * 8}s;
-          animation-duration: ${10 + Math.random() * 10}s;
-          background: ${['var(--ghibli-sun-300)', 'var(--ghibli-sky-300)', 'var(--ghibli-forest-300)', 'var(--ghibli-sakura-300)'][Math.floor(Math.random() * 4)]};
-        `
-        particlesContainer.value.appendChild(particle)
-      }
-    }
-
-    // 显示吐司
-    const showToast = (options) => {
-      if (!toastContainer.value) return
-
-      const toast = document.createElement('div')
-      toast.className = `ghibli-toast__item ghibli-toast__item--${options.type || 'info'}`
-      toast.innerHTML = `
-        <svg class="ghibli-toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          ${options.type === 'success' ? '<polyline points="20 6 9 17 4 12"/>' : ''}
-          ${options.type === 'error' ? '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' : ''}
-          ${options.type === 'warning' ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' : ''}
-          ${options.type === 'info' ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>' : ''}
-        </svg>
-        <div class="ghibli-toast__content">
-          ${options.title ? `<div class="ghibli-toast__title">${options.title}</div>` : ''}
-          ${options.message ? `<div class="ghibli-toast__message">${options.message}</div>` : ''}
-        </div>
-        <button class="ghibli-toast__close" aria-label="关闭">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      `
-
-      toast.querySelector('.ghibli-toast__close')?.addEventListener('click', () => {
-        toast.style.animation = 'toastEnter 0.2s var(--ease-gentle) reverse forwards'
-        setTimeout(() => toast.remove(), 200)
-      })
-
-      toastContainer.value.appendChild(toast)
-
-      // 自动移除
-      setTimeout(() => {
-        if (toast.parentNode) {
-          toast.style.animation = 'toastEnter 0.3s var(--ease-gentle) reverse forwards'
-          setTimeout(() => toast.remove(), 300)
-        }
-      }, options.duration || 4000)
-    }
-
-    // 暴露给全局
-    window.$ghibli = { showToast, createParticles }
-
-    return { loadProgress, particlesContainer, toastContainer }
-  }
-}
-</script>
 
 <style>
 /* ===== 应用根容器 ===== */

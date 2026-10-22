@@ -183,47 +183,9 @@ $bp-2xl: 1536px;
 // ===========================================
 
 :root {
-  // Colors
-  --color-primary: #{$color-primary};
-  --color-primary-light: #{$color-primary-light};
-  --color-primary-dark: #{$color-primary-dark};
-  --color-primary-muted: #{$color-primary-muted};
-
-  --color-bg: #{$color-bg};
-  --color-bg-elevated: #{$color-bg-elevated};
-  --color-bg-hover: #{$color-bg-hover};
-  --color-bg-card: #{$color-bg-card};
-
-  --color-text: #{$color-text};
-  --color-text-secondary: #{$color-text-secondary};
-  --color-text-muted: #{$color-text-muted};
-  --color-text-disabled: #{$color-text-disabled};
-
-  --color-border: #{$color-border};
-  --color-border-light: #{$color-border-light};
-  --color-border-focus: #{$color-border-focus};
-
-  --color-success: #{$color-success};
-  --color-success-bg: #{$color-success-bg};
-  --color-warning: #{$color-warning};
-  --color-warning-bg: #{$color-warning-bg};
-  --color-error: #{$color-error};
-  --color-error-bg: #{$color-error-bg};
-  --color-info: #{$color-info};
-  --color-info-bg: #{$color-info-bg};
-
-  // Gradients
-  --gradient-primary: #{$gradient-primary};
-  --gradient-bg: #{$gradient-bg};
-  --gradient-card: #{$gradient-card};
-  --gradient-text: #{$gradient-text};
-
-  // Shadows
-  --shadow-sm: #{$shadow-sm};
-  --shadow-md: #{$shadow-md};
-  --shadow-lg: #{$shadow-lg};
-  --shadow-xl: #{$shadow-xl};
-  --shadow-glow: #{$shadow-glow};
+  // 注意：颜色 / 渐变 / 阴影令牌统一由 src/styles/ghibli/tokens.css 提供（亮色动漫风）。
+  // 这里不再导出旧的暗色 --color-* / --shadow-* / --gradient-*，
+  // 否则会通过 vite 的 additionalData 注入到每个组件样式里，覆盖掉全局亮色主题。
 
   // Typography
   --font-family-serif: #{$font-family-serif};

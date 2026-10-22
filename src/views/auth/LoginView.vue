@@ -48,13 +48,15 @@ const goRegister = () => {
         <!-- Logo -->
         <div class="auth-header">
           <svg class="auth-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2" class="logo-ring"/>
-            <path d="M14 24 Q24 14 34 24 Q24 34 14 24" stroke="currentColor" stroke-width="2" fill="none" class="logo-yin-yang"/>
-            <circle cx="24" cy="24" r="6" fill="currentColor" class="logo-center"/>
-            <path d="M24 14 L24 34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 4" class="logo-divider"/>
+            <!-- 动漫风：老式电视机 + 播放键 -->
+            <rect x="6" y="13" width="36" height="28" rx="7" stroke="currentColor" stroke-width="2" fill="var(--ghibli-sky-100)"/>
+            <path d="M18 13 L24 6 L30 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="24" cy="6" r="2.5" fill="var(--ghibli-sun-400)"/>
+            <path d="M21 24 L29 28 L21 32 Z" fill="var(--ghibli-sakura-400)"/>
+            <path d="M35 20 L36.3 23.2 L39.5 24.5 L36.3 25.8 L35 29 L33.7 25.8 L30.5 24.5 L33.7 23.2 Z" fill="var(--ghibli-sun-300)"/>
           </svg>
-          <h1 class="auth-title">云墨江湖</h1>
-          <p class="auth-subtitle">一笔云墨，绘尽江湖梦</p>
+          <h1 class="auth-title">番剧同好会</h1>
+          <p class="auth-subtitle">追番、安利、找同好</p>
         </div>
 
         <!-- 登录表单 -->
@@ -135,12 +137,9 @@ const goRegister = () => {
             <a href="#" class="forgot-link">忘记密码？</a>
           </div>
 
-          <button type="submit" class="auth-submit" :disabled="submitLoading">
-            <span v-if="submitLoading" class="btn-loading">
-              <svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
-              </svg>
+          <button type="submit" class="ghibli-btn ghibli-btn--primary ghibli-btn--lg auth-submit" :disabled="submitLoading">
+            <span v-if="submitLoading" class="ghibli-btn__loading">
+              <span class="ghibli-spinner" aria-hidden="true"></span>
               登录中...
             </span>
             <span v-else>登录</span>
@@ -158,86 +157,94 @@ const goRegister = () => {
 
 <style scoped>
 .auth-page {
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  background: #0d0d0d;
+  padding: var(--space-16) var(--space-6);
 }
 
 .auth-container {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
 }
 
 .auth-card {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 16px;
-  padding: 48px 40px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-3xl);
+  padding: var(--space-12) var(--space-10);
+  box-shadow: var(--shadow-xl);
+}
+
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--ghibli-sky-400), var(--ghibli-forest-400), var(--ghibli-sun-400), var(--ghibli-sakura-400));
 }
 
 /* Header */
 .auth-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: var(--space-10);
 }
 
 .auth-logo {
   width: 64px;
   height: 64px;
-  color: #c9a84c;
-  margin-bottom: 16px;
-  filter: drop-shadow(0 0 16px rgba(201, 168, 76, 0.4));
-  animation: logoRotate 20s linear infinite;
+  color: var(--ghibli-sky-600);
+  margin: 0 auto var(--space-4);
+  filter: drop-shadow(0 4px 14px rgba(14, 165, 233, 0.25));
+  animation: logoFloat 3.5s ease-in-out infinite;
 }
 
-@keyframes logoRotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
 
 .auth-title {
-  font-family: 'Noto Serif SC', 'Source Han Serif', 'PingFang SC', 'Microsoft YaHei', serif;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #e8e8e8;
-  margin: 0 0 8px;
-  letter-spacing: 0.08em;
-  background: linear-gradient(135deg, #e8e8e8 0%, #c9a84c 100%);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  margin: 0 0 var(--space-2);
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, var(--ghibli-sky-600) 0%, var(--ghibli-sakura-500) 60%, var(--ghibli-sun-400) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .auth-subtitle {
-  font-family: 'Noto Serif SC', 'Source Han Serif', 'PingFang SC', 'Microsoft YaHei', serif;
-  font-size: 0.875rem;
-  color: #c9a84c;
+  font-family: var(--font-handwriting);
+  font-size: var(--text-sm);
+  color: var(--ghibli-sakura-600);
   letter-spacing: 0.15em;
   margin: 0;
-  opacity: 0.9;
 }
 
 /* Form */
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-10);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-4);
 }
 
 .form-label {
-  font-size: 0.875rem;
-  color: #e8e8e8;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  font-weight: var(--font-medium);
 }
 
 .form-input-wrapper {
@@ -251,54 +258,63 @@ const goRegister = () => {
   left: 14px;
   width: 20px;
   height: 20px;
-  color: #999;
+  color: var(--color-text-muted);
   pointer-events: none;
-  transition: color 0.2s ease;
+  transition: color var(--duration-fast) var(--ease-gentle);
 }
 
 .form-input {
   width: 100%;
-  padding: 14px 16px 14px 48px;
-  background: #0d0d0d;
-  border: 1px solid #333;
-  border-radius: 10px;
-  color: #e8e8e8;
-  font-size: 1rem;
+  padding: var(--space-8) var(--space-8) var(--space-8) 48px;
+  background: var(--ghibli-paper-50);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  font-size: var(--text-base);
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: var(--transition-gentle);
 }
 
 .form-input::placeholder {
-  color: #666;
+  color: var(--ghibli-paper-500);
+}
+
+.form-input:hover {
+  border-color: var(--color-border-strong);
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #c9a84c;
-  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.2);
+  background: var(--color-bg-elevated);
+  border-color: var(--ghibli-sky-400);
+  box-shadow: var(--focus-ring);
 }
 
 .form-input:focus + .form-icon,
 .form-input-wrapper:focus-within .form-icon {
-  color: #c9a84c;
+  color: var(--ghibli-sky-500);
 }
 
 .form-toggle-password {
   position: absolute;
   right: 12px;
-  background: none;
-  border: none;
-  padding: 4px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  color: #999;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
+  transition: color var(--duration-fast) var(--ease-gentle);
 }
 
 .form-toggle-password:hover {
-  color: #c9a84c;
+  color: var(--ghibli-sky-600);
+}
+
+.form-toggle-password:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .toggle-icon {
@@ -311,15 +327,16 @@ const goRegister = () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.875rem;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
 }
 
 .checkbox-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-4);
   cursor: pointer;
-  color: #999;
+  color: var(--color-text-muted);
 }
 
 .checkbox-input {
@@ -332,24 +349,25 @@ const goRegister = () => {
 .checkbox-custom {
   width: 20px;
   height: 20px;
-  border: 1px solid #333;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: var(--transition-gentle);
   color: transparent;
 }
 
 .checkbox-input:checked + .checkbox-custom {
-  background: #c9a84c;
-  border-color: #c9a84c;
-  color: #0d0d0d;
+  background: var(--ghibli-sky-500);
+  border-color: var(--ghibli-sky-500);
+  color: white;
 }
 
 .checkbox-input:focus-visible + .checkbox-custom {
-  outline: 2px solid #c9a84c;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .checkbox-label {
@@ -357,76 +375,30 @@ const goRegister = () => {
 }
 
 .forgot-link {
-  color: #c9a84c;
+  color: var(--ghibli-sky-600);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color var(--duration-fast) var(--ease-gentle);
 }
 
 .forgot-link:hover {
-  color: #e8d57a;
+  color: var(--ghibli-sky-700);
   text-decoration: underline;
 }
 
 /* Submit */
 .auth-submit {
   width: 100%;
-  padding: 16px;
-  background: linear-gradient(135deg, #c9a84c 0%, #a68a3a 100%);
-  border: none;
-  border-radius: 10px;
-  color: #0d0d0d;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 8px;
-}
-
-.auth-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(201, 168, 76, 0.3);
-}
-
-.auth-submit:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.auth-submit:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.auth-submit:focus-visible {
-  outline: 2px solid #c9a84c;
-  outline-offset: 2px;
-}
-
-.btn-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  margin-top: var(--space-2);
 }
 
 /* Error */
 .auth-error {
-  padding: 12px 16px;
-  background: rgba(220, 53, 69, 0.15);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  border-radius: 8px;
-  color: #dc3545;
-  font-size: 0.875rem;
+  padding: var(--space-6) var(--space-8);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  color: var(--color-error);
+  font-size: var(--text-sm);
   animation: shake 0.4s ease;
 }
 
@@ -439,47 +411,63 @@ const goRegister = () => {
 /* Footer */
 .auth-footer {
   text-align: center;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid #333;
-  color: #999;
-  font-size: 0.9375rem;
+  margin-top: var(--space-12);
+  padding-top: var(--space-10);
+  border-top: 1px dashed var(--color-divider);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.auth-footer p {
+  margin: 0;
+  color: inherit;
 }
 
 .auth-footer .link {
-  color: #c9a84c;
+  color: var(--ghibli-sky-600);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-gentle);
 }
 
 .auth-footer .link:hover {
-  color: #e8d57a;
+  color: var(--ghibli-sky-700);
   text-decoration: underline;
 }
 
 /* 响应式 */
 @media (max-width: 480px) {
+  .auth-page {
+    padding: var(--space-12) var(--space-4);
+  }
+
   .auth-card {
-    padding: 32px 24px;
+    padding: var(--space-10) var(--space-6);
+    border-radius: var(--radius-2xl);
   }
 
   .auth-title {
-    font-size: 1.75rem;
+    font-size: var(--text-2xl);
+  }
+
+  .form-options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
   }
 }
 
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   .auth-logo,
-  .spinner {
+  .auth-error {
     animation: none;
   }
 
   .form-input,
   .form-toggle-password,
   .checkbox-custom,
-  .auth-submit,
   .forgot-link,
   .auth-footer .link {
     transition: none;

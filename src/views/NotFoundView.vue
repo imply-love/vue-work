@@ -17,14 +17,14 @@ const goHome = () => {
         <line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>
       <h1 class="not-found-code">404</h1>
-      <h2 class="not-found-title">页面迷路了</h2>
-      <p class="not-found-desc">这条江湖小径似乎不存在，或是已被时光掩埋</p>
-      <button class="btn btn-primary" @click="goHome">
-        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <h2 class="not-found-title">这个页面掉进异次元了</h2>
+      <p class="not-found-desc">链接可能已经失效，或者它被传送到了别的次元，先回首页继续追番吧</p>
+      <button class="ghibli-btn ghibli-btn--primary ghibli-btn--lg" @click="goHome">
+        <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9 22 9 12 15 12 15 22"/>
         </svg>
-        返回江湖入口
+        回到首页
       </button>
     </div>
   </div>
@@ -32,25 +32,23 @@ const goHome = () => {
 
 <style scoped>
 .not-found-page {
-  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px 20px;
-  background: #0d0d0d;
+  padding: var(--space-20) var(--space-6);
 }
 
 .not-found-container {
   text-align: center;
-  max-width: 400px;
+  max-width: 440px;
 }
 
 .not-found-icon {
   width: 80px;
   height: 80px;
-  color: #c9a84c;
-  margin-bottom: 24px;
-  filter: drop-shadow(0 0 16px rgba(201, 168, 76, 0.4));
+  color: var(--ghibli-sakura-400);
+  margin: 0 auto var(--space-6);
+  filter: drop-shadow(0 4px 16px rgba(244, 114, 182, 0.35));
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -60,80 +58,45 @@ const goHome = () => {
 }
 
 .not-found-code {
-  font-family: 'JetBrains Mono', 'Fira Code', monospace;
-  font-size: 6rem;
-  font-weight: 700;
-  color: #c9a84c;
+  font-family: var(--font-mono);
+  font-size: var(--text-6xl);
+  font-weight: var(--font-bold);
   line-height: 1;
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
   letter-spacing: 0.1em;
-  text-shadow: 0 0 32px rgba(201, 168, 76, 0.3);
+  background: linear-gradient(135deg, var(--ghibli-sky-500) 0%, var(--ghibli-sakura-500) 50%, var(--ghibli-sun-400) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .not-found-title {
-  font-family: 'Noto Serif SC', 'Source Han Serif', 'PingFang SC', 'Microsoft YaHei', serif;
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #e8e8e8;
-  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
 }
 
 .not-found-desc {
-  color: #999;
-  font-size: 1rem;
-  line-height: 1.6;
-  margin: 0 0 32px;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 16px 32px;
-  border-radius: 50px;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border: none;
-  text-decoration: none;
-}
-
-.btn:focus-visible {
-  outline: 2px solid #c9a84c;
-  outline-offset: 3px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #c9a84c 0%, #a68a3a 100%);
-  color: #0d0d0d;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(201, 168, 76, 0.4);
-}
-
-.btn-icon {
-  width: 20px;
-  height: 20px;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  margin: 0 0 var(--space-12);
 }
 
 /* 响应式 */
 @media (max-width: 480px) {
+  .not-found-page {
+    padding: var(--space-16) var(--space-4);
+  }
+
   .not-found-code {
-    font-size: 4rem;
+    font-size: var(--text-5xl);
   }
 
   .not-found-title {
-    font-size: 1.5rem;
-  }
-
-  .btn {
-    padding: 14px 24px;
-    font-size: 0.9375rem;
+    font-size: var(--text-xl);
   }
 }
 
@@ -141,10 +104,6 @@ const goHome = () => {
 @media (prefers-reduced-motion: reduce) {
   .not-found-icon {
     animation: none;
-  }
-
-  .btn {
-    transition: none;
   }
 }
 </style>

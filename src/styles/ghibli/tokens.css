@@ -4,6 +4,9 @@
    ======================================== */
 
 :root {
+  /* 固定亮色主题：让滚动条、表单控件等原生 UI 也跟随亮色 */
+  color-scheme: light;
+
   /* ===== 色彩系统 Color System ===== */
 
   /* 主色调 - 天空与海洋 */
@@ -235,20 +238,9 @@
   --focus-ring-offset: 2px;
 }
 
-/* ===== 深色模式适配 ===== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #1c1917;
-    --color-bg-elevated: #292524;
-    --color-bg-card: #292524;
-    --color-text: #fafaf6;
-    --color-text-muted: #a8a29e;
-    --color-text-light: #d6d3d1;
-    --color-border: #44403c;
-    --color-border-strong: #57534e;
-    --color-divider: #44403c;
-  }
-}
+/* ===== 主题说明 =====
+   全站统一使用这套亮色（宫崎骏/动漫风）令牌，不再跟随系统深色模式切换，
+   避免出现「亮色卡片配深色底」这类两套主题混用的不一致。 */
 
 /* ===== 减少动画偏好 ===== */
 @media (prefers-reduced-motion: reduce) {

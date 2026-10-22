@@ -15,12 +15,13 @@ const error = ref('')
 const fetchPost = async () => {
   loading.value = true
   error.value = ''
+  post.value = null
   try {
-    // 这里暂时用列表接口模拟，实际应该有详情接口
-    const response = await postApi.getList({ page: 1, page_size: 1 })
-    if (response.code === 0 && response.data.list.length > 0) {
-      // 找到对应ID的帖子（实际项目中应该有专门的详情接口）
-      post.value = response.data.list.find(p => p.id === parseInt(route.params.id)) || response.data.list[0]
+    const response = await postApi.getDetail(route.params.id)
+    if (response.code === 0) {
+      post.value = response.data
+    } else {
+      error.value = response.message || '获取帖子详情失败'
     }
   } catch (err) {
     error.value = err.message || '获取帖子详情失败'
@@ -61,7 +62,7 @@ const goBack = () => {
           <line x1="9" y1="9" x2="15" y2="15"/>
         </svg>
         <p>{{ error }}</p>
-        <button class="btn btn-primary" @click="fetchPost">重试</button>
+        <button class="ghibli-btn ghibli-btn--warm" @click="fetchPost">重试</button>
       </div>
 
       <article v-else-if="post" class="post-detail">
@@ -145,43 +146,41 @@ export default {
 
 <style scoped>
 .post-detail-page {
-  min-height: 100vh;
-  background: #0d0d0d;
-  padding-top: 72px;
+  min-height: 100%;
 }
 
 .detail-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 32px 24px 80px;
+  padding: var(--space-12) var(--space-6) var(--space-20);
 }
 
 /* Back Button */
 .back-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: transparent;
-  border: 1px solid #333;
-  border-radius: 50px;
-  color: #999;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-8);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--color-text-muted);
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: var(--text-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 24px;
+  transition: var(--transition-gentle);
+  margin-bottom: var(--space-12);
 }
 
 .back-btn:hover {
-  border-color: #c9a84c;
-  color: #c9a84c;
-  background: rgba(201, 168, 76, 0.1);
+  border-color: var(--ghibli-sky-300);
+  color: var(--ghibli-sky-600);
+  background: var(--ghibli-sky-50);
 }
 
 .back-btn:focus-visible {
-  outline: 2px solid #c9a84c;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .back-btn svg {
@@ -196,17 +195,22 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  min-height: 360px;
   text-align: center;
-  gap: 16px;
-  color: #999;
+  gap: var(--space-8);
+  color: var(--color-text-muted);
+}
+
+.detail-error p {
+  margin: 0;
+  color: var(--color-text-muted);
 }
 
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid #333;
-  border-top-color: #c9a84c;
+  border: 3px solid var(--ghibli-sky-100);
+  border-top-color: var(--ghibli-sky-500);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -218,26 +222,27 @@ export default {
 .error-icon {
   width: 64px;
   height: 64px;
-  color: #dc3545;
+  color: var(--ghibli-sakura-400);
 }
 
 /* Post Detail */
 .post-detail {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 16px;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
   overflow: hidden;
+  box-shadow: var(--shadow-md);
 }
 
 .post-detail__header {
-  padding: 24px;
-  border-bottom: 1px solid #333;
+  padding: var(--space-12);
+  border-bottom: 1px dashed var(--color-divider);
 }
 
 .post-detail__author {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--space-8);
 }
 
 .post-detail__avatar {
@@ -245,19 +250,15 @@ export default {
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #333;
+  border: 2px solid var(--color-border);
 }
 
 .post-detail__avatar.placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #333 0%, #222 100%);
-  border: 2px solid #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  background: linear-gradient(135deg, var(--ghibli-sky-100) 0%, var(--ghibli-forest-100) 100%);
+  color: var(--ghibli-sky-600);
 }
 
 .post-detail__avatar.placeholder svg {
@@ -271,14 +272,14 @@ export default {
 }
 
 .post-detail__author-name {
-  font-weight: 600;
-  color: #e8e8e8;
-  font-size: 1rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  font-size: var(--text-base);
 }
 
 .post-detail__time {
-  font-size: 0.8125rem;
-  color: #666;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .post-detail__cover {
@@ -294,92 +295,98 @@ export default {
 }
 
 .post-detail__content {
-  padding: 32px 24px;
+  padding: var(--space-16) var(--space-12);
 }
 
 .post-detail__title {
-  font-family: 'Noto Serif SC', 'Source Han Serif', 'PingFang SC', 'Microsoft YaHei', serif;
+  font-family: var(--font-display);
   font-size: clamp(1.5rem, 3vw, 2rem);
-  font-weight: 700;
-  color: #e8e8e8;
-  margin: 0 0 24px;
-  line-height: 1.4;
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-12);
+  line-height: var(--leading-tight);
   letter-spacing: 0.02em;
 }
 
 .post-detail__body {
-  font-size: 1rem;
-  color: #e8e8e8;
-  line-height: 1.9;
+  font-size: var(--text-base);
+  color: var(--color-text);
+  line-height: var(--leading-loose);
 }
 
 .post-detail__body p {
   margin: 0 0 1.5em;
+  color: inherit;
 }
 
 .post-detail__body img {
   max-width: 100%;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   margin: 1.5em 0;
 }
 
 .post-detail__footer {
-  padding: 20px 24px;
-  border-top: 1px solid #333;
-  background: #0d0d0d;
+  padding: var(--space-10) var(--space-12);
+  border-top: 1px dashed var(--color-divider);
+  background: var(--ghibli-paper-100);
 }
 
 .post-detail__stats {
   display: flex;
-  gap: 28px;
+  gap: var(--space-16);
 }
 
 .post-detail__stat {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.9375rem;
-  color: #999;
+  gap: var(--space-3);
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
 }
 
 .stat-icon {
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  color: #666;
+  color: var(--ghibli-paper-500);
 }
 
 /* 响应式 */
 @media (max-width: 768px) {
   .detail-container {
-    padding: 24px 20px 60px;
+    padding: var(--space-10) var(--space-4) var(--space-16);
   }
 
-  .post-detail__content {
-    padding: 24px 20px;
+  .post-detail__header,
+  .post-detail__content,
+  .post-detail__footer {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
   }
 
   .post-detail__stats {
-    gap: 20px;
+    gap: var(--space-12);
   }
 }
 
 @media (max-width: 480px) {
   .post-detail__title {
-    font-size: 1.375rem;
+    font-size: var(--text-2xl);
   }
 
   .post-detail__stats {
     flex-wrap: wrap;
-    gap: 16px;
+    gap: var(--space-8);
   }
 }
 
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
-  .spinner,
-  .back-btn {
+  .spinner {
     animation: none;
+  }
+
+  .back-btn {
     transition: none;
   }
 }

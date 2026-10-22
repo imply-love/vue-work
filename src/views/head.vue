@@ -1,21 +1,25 @@
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
-const siteTitle = ref('云墨江湖')
-const siteSubtitle = ref('一笔云墨，绘尽江湖梦')
+const siteTitle = ref('番剧同好会')
+const siteSubtitle = ref('追番、安利、找同好')
 const navItems = ref([
-  { name: '首页', path: '/', active: true },
-  { name: '江湖动态', path: '/news', active: false },
-  { name: '侠客行', path: '/heroes', active: false },
-  { name: '武功秘籍', path: '/skills', active: false },
-  { name: '关于我们', path: '/about', active: false },
-  { name: '测试中心', path: '/test', active: false }
+  { name: '首页', path: '/' },
+  { name: '讨论区', path: '/news' },
+  { name: '番剧库', path: '/heroes' },
+  { name: '资源分享', path: '/skills' },
+  { name: '关于我们', path: '/about' },
+  { name: '测试中心', path: '/test' }
 ])
+
+// 首页只精确匹配才高亮，其余按前缀匹配（例如 /test/api 也算「测试中心」）
+const isNavActive = (path) => (path === '/' ? route.path === '/' : route.path.startsWith(path))
 
 const isScrolled = ref(false)
 const mobileMenuOpen = ref(false)
@@ -112,7 +116,7 @@ onUnmounted(() => {
 })
 
 const getAvatarInitial = (nickname) => {
-  if (!nickname) return '云'
+  if (!nickname) return '番'
   return nickname.charAt(0).toUpperCase()
 }
 </script>
@@ -150,38 +154,25 @@ const getAvatarInitial = (nickname) => {
     <div class="ghibli-header__container">
       <!-- Logo 区域 -->
       <div class="ghibli-header__brand">
-        <router-link to="/" class="ghibli-logo" aria-label="云墨江湖 - 返回首页">
+        <router-link to="/" class="ghibli-logo" aria-label="番剧同好会 - 返回首页">
           <svg class="ghibli-logo__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <!-- 吉卜力风格 Logo：龙猫轮廓 + 飞行石 -->
-            <ellipse cx="24" cy="34" rx="18" ry="14" stroke="currentColor" stroke-width="2.5" fill="var(--ghibli-warm-200)" opacity="0.3"/>
-            <ellipse cx="24" cy="28" rx="14" ry="10" stroke="currentColor" stroke-width="2" fill="var(--ghibli-warm-100)" opacity="0.4"/>
-            <!-- 耳朵 -->
-            <path d="M10 22 Q8 12 14 16" stroke="currentColor" stroke-width="2" fill="var(--ghibli-warm-100)" opacity="0.3"/>
-            <path d="M38 22 Q40 12 34 16" stroke="currentColor" stroke-width="2" fill="var(--ghibli-warm-100)" opacity="0.3"/>
-            <!-- 眼睛 -->
-            <circle cx="17" cy="28" r="3" fill="var(--ghibli-ink-700)"/>
-            <circle cx="31" cy="28" r="3" fill="var(--ghibli-ink-700)"/>
-            <!-- 鼻子 -->
-            <ellipse cx="24" cy="32" rx="2" ry="1.5" fill="var(--ghibli-sakura-400)"/>
-            <!-- 胡须 -->
-            <g stroke="var(--ghibli-ink-500)" stroke-width="1.5" opacity="0.6">
-              <line x1="14" y1="31" x2="6" y2="29"/>
-              <line x1="14" y1="33" x2="5" y2="34"/>
-              <line x1="14" y1="35" x2="6" y2="39"/>
-              <line x1="34" y1="31" x2="42" y2="29"/>
-              <line x1="34" y1="33" x2="43" y2="34"/>
-              <line x1="34" y1="35" x2="42" y2="39"/>
-            </g>
-            <!-- 肚子花纹 -->
-            <path d="M24 36 Q20 38 18 42" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.4"/>
-            <path d="M24 36 Q28 38 30 42" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.4"/>
-            <!-- 飞行石 -->
-            <polygon points="24,8 28,18 38,18 30,24 34,34 24,28 14,34 18,24 10,18 20,18" fill="var(--ghibli-sky-300)" stroke="var(--ghibli-sky-500)" stroke-width="1.5" opacity="0.9">
-              <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
-            </polygon>
-            <circle cx="24" cy="20" r="3" fill="var(--ghibli-sun-300)" opacity="0.8">
-              <animate attributeName="r" values="3;4;3" dur="1.5s" repeatCount="indefinite"/>
-            </circle>
+            <!-- 动漫风 Logo：老式电视机 + 播放键 + 星星，代表「追番」与「同好会」 -->
+            <rect x="7" y="14" width="34" height="26" rx="6" stroke="currentColor" stroke-width="2.5" fill="var(--ghibli-sky-100)" opacity="0.7"/>
+            <rect x="12" y="20" width="24" height="14" rx="4" fill="var(--ghibli-sky-200)" opacity="0.8"/>
+            <!-- 天线 -->
+            <path d="M18 14 L24 7 L30 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <circle cx="24" cy="7" r="2.5" fill="var(--ghibli-sun-400)"/>
+            <!-- 旋钮 -->
+            <circle cx="14" cy="36" r="1.8" fill="var(--ghibli-forest-500)"/>
+            <circle cx="20" cy="36" r="1.8" fill="var(--ghibli-warm-500)"/>
+            <!-- 播放键 -->
+            <path d="M21.5 23.5 L28.5 27 L21.5 30.5 Z" fill="var(--ghibli-sakura-400)" stroke="var(--ghibli-sakura-500)" stroke-width="1.2" stroke-linejoin="round">
+              <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+            </path>
+            <!-- 四角星 -->
+            <path d="M35 21 L36.4 24.6 L40 26 L36.4 27.4 L35 31 L33.6 27.4 L30 26 L33.6 24.6 Z" fill="var(--ghibli-sun-300)" opacity="0.95">
+              <animate attributeName="opacity" values="0.95;0.5;0.95" dur="1.8s" repeatCount="indefinite"/>
+            </path>
           </svg>
           <span class="ghibli-logo__text">
             <span class="ghibli-logo__main">{{ siteTitle }}</span>
@@ -197,8 +188,8 @@ const getAvatarInitial = (nickname) => {
             <router-link
               :to="item.path"
               class="ghibli-header__nav-link"
-              :class="{ 'ghibli-header__nav-link--active': item.active }"
-              :aria-current="item.active ? 'page' : undefined"
+              :class="{ 'ghibli-header__nav-link--active': isNavActive(item.path) }"
+              :aria-current="isNavActive(item.path) ? 'page' : undefined"
             >
               <span class="ghibli-header__nav-text">{{ item.name }}</span>
               <span class="ghibli-header__nav-indicator" aria-hidden="true"></span>
@@ -332,7 +323,7 @@ const getAvatarInitial = (nickname) => {
               <router-link
                 :to="item.path"
                 class="ghibli-header__mobile-nav-link"
-                :class="{ 'ghibli-header__mobile-nav-link--active': item.active }"
+                :class="{ 'ghibli-header__mobile-nav-link--active': isNavActive(item.path) }"
                 @click="navigateTo(item.path)"
               >
                 <span>{{ item.name }}</span>
@@ -625,8 +616,8 @@ const getAvatarInitial = (nickname) => {
 .ghibli-logo__icon {
   width: 44px;
   height: 44px;
-  color: var(--ghibli-warm-500);
-  filter: drop-shadow(0 2px 8px rgba(212, 138, 58, 0.3));
+  color: var(--ghibli-sky-600);
+  filter: drop-shadow(0 2px 8px rgba(14, 165, 233, 0.3));
 }
 
 .ghibli-logo__text {

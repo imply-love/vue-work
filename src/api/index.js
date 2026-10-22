@@ -64,6 +64,10 @@ export const userApi = {
   getProfile() {
     return api.get('/user/profile')
   },
+  // 更新当前用户资料（昵称、邮箱）
+  updateProfile(data) {
+    return api.put('/user/profile', data)
+  },
 }
 
 // 帖子相关 API
@@ -71,6 +75,10 @@ export const postApi = {
   // 获取帖子列表
   getList(params = {}) {
     return api.get('/posts', { params })
+  },
+  // 获取帖子详情
+  getDetail(id) {
+    return api.get(`/posts/${id}`)
   },
 }
 

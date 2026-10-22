@@ -32,6 +32,11 @@ RANDOM_USERNAME_MAX_RETRY = 10
 PASSWORD_MIN_LENGTH = 6
 PASSWORD_MAX_LENGTH = 20
 
+# 与 users 表字段长度保持一致，超长直接返回 1001，避免落库时报数据库错误
+USERNAME_MAX_LENGTH = 50
+EMAIL_MAX_LENGTH = 100
+NICKNAME_MAX_LENGTH = 50
+
 
 @bp.post("/register")
 def register():
@@ -55,8 +60,15 @@ def register():
     if not is_valid_email(email):
         return make_response(CODE_PARAM_ERROR, "邮箱格式不正确")
 
+    if len(email) > EMAIL_MAX_LENGTH:
+        return make_response(CODE_PARAM_ERROR, f"邮箱长度不能超过 {EMAIL_MAX_LENGTH} 位")
+
     # 传了用户名就校验唯一性，没传才随机生成
     if username:
+        if len(username) > USERNAME_MAX_LENGTH:
+            return make_response(
+                CODE_PARAM_ERROR, f"用户名长度不能超过 {USERNAME_MAX_LENGTH} 位"
+            )
         if query_one("SELECT id FROM users WHERE username=%s", (username,)):
             return make_response(CODE_USERNAME_EXISTS, "该用户名已被注册")
     else:
@@ -69,6 +81,9 @@ def register():
 
     if not nickname:
         nickname = username
+
+    if len(nickname) > NICKNAME_MAX_LENGTH:
+        return make_response(CODE_PARAM_ERROR, f"昵称长度不能超过 {NICKNAME_MAX_LENGTH} 位")
 
     try:
         user_id = execute(

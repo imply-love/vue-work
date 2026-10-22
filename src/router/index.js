@@ -32,6 +32,31 @@ const routes = [
     component: () => import('@/views/home/PostDetailView.vue'),
     meta: { title: '帖子详情' },
   },
+  // 导航栏里的四个板块（当前为占位页，功能实现后替换对应页面即可）
+  {
+    path: '/news',
+    name: 'News',
+    component: () => import('@/views/news/NewsView.vue'),
+    meta: { title: '讨论区' },
+  },
+  {
+    path: '/heroes',
+    name: 'Heroes',
+    component: () => import('@/views/heroes/HeroesView.vue'),
+    meta: { title: '番剧库' },
+  },
+  {
+    path: '/skills',
+    name: 'Skills',
+    component: () => import('@/views/skills/SkillsView.vue'),
+    meta: { title: '资源分享' },
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('@/views/about/AboutView.vue'),
+    meta: { title: '关于我们' },
+  },
   // 测试页面路由
   {
     path: '/test',
@@ -91,7 +116,7 @@ const router = createRouter({
 // 全局前置守卫
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  document.title = `${to.meta.title || '云墨江湖'} - 一笔云墨，绘尽江湖梦`
+  document.title = `${to.meta.title || '番剧同好会'} - 追番、安利、找同好`
 
   // 需要登录的页面
   if (to.meta.requiresAuth) {

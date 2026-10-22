@@ -72,8 +72,8 @@ const handleClick = (e) => {
 
     <div class="post-card__content">
       <h3 class="post-card__title">{{ post.title }}</h3>
-      <p v-if="post.content" class="post-card__excerpt">
-        {{ post.content.replace(/<[^>]*>/g, '').substring(0, 120) }}{{ post.content.length > 120 ? '...' : '' }}
+      <p v-if="post.excerpt" class="post-card__excerpt">
+        {{ post.excerpt }}
       </p>
     </div>
 
@@ -105,34 +105,37 @@ const handleClick = (e) => {
 
 <style scoped>
 .post-card {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2xl);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-spring);
+  box-shadow: var(--shadow-sm);
 }
 
 .post-card:hover {
-  border-color: #c9a84c;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: var(--ghibli-sky-300);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-4px);
 }
 
 .post-card:focus-visible {
-  outline: 2px solid #c9a84c;
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--focus-ring), var(--shadow-lg);
 }
 
 /* Header */
 .post-card__header {
-  padding: 20px 20px 0;
+  padding: var(--space-10) var(--space-10) 0;
 }
 
 .post-card__author {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-6);
 }
 
 .post-card__avatar {
@@ -140,24 +143,20 @@ const handleClick = (e) => {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #333;
-  transition: border-color 0.2s ease;
+  border: 2px solid var(--color-border);
+  transition: border-color var(--duration-fast) var(--ease-gentle);
 }
 
 .post-card:hover .post-card__avatar {
-  border-color: #c9a84c;
+  border-color: var(--ghibli-sky-400);
 }
 
 .post-card__avatar.placeholder {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #333 0%, #222 100%);
-  border: 2px solid #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  background: linear-gradient(135deg, var(--ghibli-sky-100) 0%, var(--ghibli-forest-100) 100%);
+  color: var(--ghibli-sky-600);
 }
 
 .post-card__avatar.placeholder svg {
@@ -172,17 +171,17 @@ const handleClick = (e) => {
 }
 
 .post-card__author-name {
-  font-weight: 600;
-  color: #e8e8e8;
-  font-size: 0.9375rem;
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  font-size: var(--text-base);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .post-card__time {
-  font-size: 0.75rem;
-  color: #666;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -191,13 +190,14 @@ const handleClick = (e) => {
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  margin-top: var(--space-8);
 }
 
 .post-card__cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform var(--duration-slower) var(--ease-gentle);
 }
 
 .post-card:hover .post-card__cover img {
@@ -206,16 +206,17 @@ const handleClick = (e) => {
 
 /* Content */
 .post-card__content {
-  padding: 16px 20px 12px;
+  padding: var(--space-8) var(--space-10) var(--space-6);
+  flex: 1;
 }
 
 .post-card__title {
-  font-family: 'Noto Serif SC', 'Source Han Serif', 'PingFang SC', 'Microsoft YaHei', serif;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #e8e8e8;
-  margin: 0 0 8px;
-  line-height: 1.4;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-4);
+  line-height: var(--leading-normal);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -223,9 +224,9 @@ const handleClick = (e) => {
 }
 
 .post-card__excerpt {
-  font-size: 0.875rem;
-  color: #999;
-  line-height: 1.6;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: var(--leading-relaxed);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -235,58 +236,67 @@ const handleClick = (e) => {
 
 /* Footer */
 .post-card__footer {
-  padding: 12px 20px 16px;
-  border-top: 1px solid #333;
+  padding: var(--space-6) var(--space-10) var(--space-8);
+  border-top: 1px dashed var(--color-divider);
 }
 
 .post-card__stats {
   display: flex;
-  gap: 20px;
+  gap: var(--space-10);
 }
 
 .post-card__stat {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  color: #999;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
   white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-gentle);
 }
 
 .stat-icon {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
-  color: #666;
+  color: var(--ghibli-paper-500);
+  transition: color var(--duration-fast) var(--ease-gentle);
 }
 
 .post-card:hover .post-card__stat {
-  color: #c9a84c;
+  color: var(--ghibli-sky-600);
 }
 
 .post-card:hover .stat-icon {
-  color: #c9a84c;
+  color: var(--ghibli-sky-500);
 }
 
 /* 响应式 */
 @media (max-width: 768px) {
+  .post-card__header {
+    padding: var(--space-8) var(--space-8) 0;
+  }
+
   .post-card__content {
-    padding: 12px 16px 8px;
+    padding: var(--space-6) var(--space-8);
   }
 
   .post-card__footer {
-    padding: 10px 16px 14px;
+    padding: var(--space-5) var(--space-8) var(--space-6);
   }
 
   .post-card__stats {
-    gap: 16px;
+    gap: var(--space-8);
   }
 }
 
 /* 减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   .post-card,
-  .post-card__cover img {
+  .post-card__cover img,
+  .post-card__avatar,
+  .post-card__stat,
+  .stat-icon {
     transition: none;
   }
 }
