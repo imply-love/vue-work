@@ -3,12 +3,14 @@ import random
 import string
 
 import pymysql
-from flask import Blueprint
+from flask import Blueprint, request
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from db import execute, query_one
+from utils.device import extract_client_ip, parse_user_agent
 from utils.params import clean, get_body, is_valid_email, require
 from utils.response import (
+    CODE_CODE_INVALID,
     CODE_DB_ERROR,
     CODE_EMAIL_EXISTS,
     CODE_PARAM_ERROR,
@@ -20,6 +22,7 @@ from utils.response import (
     make_response,
 )
 from utils.token import generate_token
+from utils.verify_code import SCENE_REGISTER, check_code
 
 bp = Blueprint("auth", __name__, url_prefix="/api")
 
@@ -40,14 +43,18 @@ NICKNAME_MAX_LENGTH = 50
 
 @bp.post("/register")
 def register():
-    """用户注册接口。"""
+    """用户注册接口。
+
+    邮箱是强制绑定项：必须先通过 /api/email/code 拿到验证码，注册时才允许创建账号。
+    """
     body = get_body()
     username = clean(body.get("username"))
     password = clean(body.get("password"))
     email = clean(body.get("email"))
     nickname = clean(body.get("nickname"))
+    code = clean(body.get("code"))
 
-    missing = require(body, "password", "email")
+    missing = require(body, "password", "email", "code")
     if missing:
         return make_response(CODE_PARAM_ERROR, f"缺少必填参数：{'、'.join(missing)}")
 
@@ -85,6 +92,10 @@ def register():
     if len(nickname) > NICKNAME_MAX_LENGTH:
         return make_response(CODE_PARAM_ERROR, f"昵称长度不能超过 {NICKNAME_MAX_LENGTH} 位")
 
+    # 放在所有字段校验之后：验证码是一次性的，前面任何一步失败都不该消耗它
+    if not check_code(email, SCENE_REGISTER, code):
+        return make_response(CODE_CODE_INVALID, "邮箱验证码错误或已过期，请重新获取")
+
     try:
         user_id = execute(
             "INSERT INTO users (username, password, email, nickname) VALUES (%s, %s, %s, %s)",
@@ -114,7 +125,7 @@ def login():
         return make_response(CODE_PARAM_ERROR, f"缺少必填参数：{'、'.join(missing)}")
 
     user = query_one(
-        "SELECT id, username, password, email, nickname, avatar, followers_count, "
+        "SELECT id, username, password, email, nickname, avatar, phone, followers_count, "
         "likes_count, following_count, role, status "
         "FROM users WHERE username=%s",
         (username,),
@@ -128,6 +139,9 @@ def login():
     if user["status"] == 0:
         return make_response(CODE_USER_DISABLED, "账号已被禁用")
 
+    # 登录成功，写入登录记录（IP、设备摘要、UA），供个人中心「登录记录」展示
+    _record_login(user["id"])
+
     # 登录成功，签发 token 供后续接口携带
     return make_response(CODE_SUCCESS, "登录成功", {
         "id": user["id"],
@@ -135,12 +149,32 @@ def login():
         "email": user["email"],
         "nickname": user["nickname"],
         "avatar": user["avatar"],
+        "phone": user["phone"] or "",
         "followers_count": user["followers_count"],
         "likes_count": user["likes_count"],
         "following_count": user["following_count"],
         "role": user["role"],
         "token": generate_token(user["id"]),
     })
+
+
+def _record_login(user_id):
+    """写入一条登录记录（login_logs），失败不影响登录主流程。"""
+    try:
+        execute(
+            "INSERT INTO login_logs (user_id, ip, device, user_agent) VALUES (%s, %s, %s, %s)",
+            (
+                user_id,
+                extract_client_ip(request),
+                parse_user_agent(request.headers.get("User-Agent", ""))[:100],
+                (request.headers.get("User-Agent", "") or "")[:255],
+            ),
+        )
+    except Exception:
+        # 登录记录失败不应阻断登录本身，仅记录日志
+        from flask import current_app
+
+        current_app.logger.warning("写入登录记录失败", exc_info=True)
 
 
 def _generate_username():

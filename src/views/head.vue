@@ -9,14 +9,20 @@ const authStore = useAuthStore()
 
 const siteTitle = ref('番剧同好会')
 const siteSubtitle = ref('追番、安利、找同好')
-const navItems = ref([
-  { name: '首页', path: '/' },
-  { name: '讨论区', path: '/news' },
-  { name: '番剧库', path: '/heroes' },
-  { name: '资源分享', path: '/skills' },
-  { name: '关于我们', path: '/about' },
-  { name: '测试中心', path: '/test' }
-])
+// 导航项：测试中心仅管理员可见（普通用户与游客不展示）
+const navItems = computed(() => {
+  const items = [
+    { name: '首页', path: '/' },
+    { name: '讨论区', path: '/news' },
+    { name: '番剧库', path: '/heroes' },
+    { name: '资源分享', path: '/skills' },
+    { name: '关于我们', path: '/about' },
+  ]
+  if (authStore.isAdmin) {
+    items.push({ name: '测试中心', path: '/test' })
+  }
+  return items
+})
 
 // 首页只精确匹配才高亮，其余按前缀匹配（例如 /test/api 也算「测试中心」）
 const isNavActive = (path) => (path === '/' ? route.path === '/' : route.path.startsWith(path))

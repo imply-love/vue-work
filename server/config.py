@@ -35,6 +35,16 @@ class Config:
 
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
 
+    # 邮件服务：用于发送注册 / 换绑邮箱的验证码
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.qq.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", "465"))
+    MAIL_USE_SSL = _env_bool("MAIL_USE_SSL", True)
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME", "")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD", "")
+    MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "番剧同好会")
+    # 未配置发信账号时不发信，验证码改为输出到后端控制台，保证本地也能跑通注册流程
+    MAIL_ENABLED = bool(MAIL_USERNAME and MAIL_PASSWORD)
+
     HOST = os.getenv("HOST", "0.0.0.0")
     PORT = int(os.getenv("PORT", "5000"))
     DEBUG = _env_bool("DEBUG", True)

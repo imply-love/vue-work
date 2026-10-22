@@ -27,6 +27,34 @@ def get_current_user():
     return g.get(_CURRENT_USER_KEY)
 
 
+def try_get_current_user():
+    """尝试从请求头解析当前登录用户，未登录或 token 无效返回 None（不报错）。
+
+    用于「公开接口但草稿等私密内容仅作者可见」的场景：接口本身不强制登录，
+    但拿到有效 token 时能识别出当前用户。与 login_required 的差别是不返回 1007。
+    """
+    if _CURRENT_USER_KEY in g:
+        return g.get(_CURRENT_USER_KEY)
+
+    user_id = parse_token(_extract_token())
+    if user_id is None:
+        return None
+
+    user = query_one(
+        "SELECT id, username, role, status FROM users WHERE id=%s",
+        (user_id,),
+    )
+    if user is None or user["status"] == 0:
+        return None
+
+    g.current_user = {
+        "id": user["id"],
+        "username": user["username"],
+        "role": user["role"],
+    }
+    return g.current_user
+
+
 def login_required(view):
     """校验请求头中的 token，通过后把当前用户写入 g.current_user。"""
     @wraps(view)

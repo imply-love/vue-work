@@ -1,7 +1,13 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { authApi } from '@/api'
+
+const EMAIL_PATTERN = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+const CODE_PATTERN = /^\d{6}$/
+// 与后端 utils/verify_code.py 的 CODE_RESEND_INTERVAL 保持一致
+const RESEND_SECONDS = 60
 
 const router = useRouter()
 const route = useRoute()
@@ -10,6 +16,7 @@ const authStore = useAuthStore()
 const form = reactive({
   username: '',
   email: '',
+  code: '',
   password: '',
   confirmPassword: '',
   nickname: '',
@@ -21,13 +28,67 @@ const errorMessage = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 
+// 邮箱验证码：发送按钮的状态与 60 秒重发倒计时
+const codeSending = ref(false)
+const countdown = ref(0)
+const codeMessage = ref('')
+let countdownTimer = null
+
+const startCountdown = () => {
+  countdown.value = RESEND_SECONDS
+  countdownTimer = setInterval(() => {
+    countdown.value -= 1
+    if (countdown.value <= 0) {
+      clearInterval(countdownTimer)
+      countdownTimer = null
+    }
+  }, 1000)
+}
+
+const handleSendCode = async () => {
+  codeMessage.value = ''
+  const email = form.email.trim()
+  if (!email) {
+    codeMessage.value = '请先填写邮箱'
+    return
+  }
+  if (!EMAIL_PATTERN.test(email)) {
+    codeMessage.value = '邮箱格式不正确'
+    return
+  }
+
+  codeSending.value = true
+  try {
+    const response = await authApi.sendEmailCode({ email })
+    codeMessage.value = response.message || '验证码已发送'
+    if (response.code === 0) {
+      startCountdown()
+    }
+  } catch (err) {
+    codeMessage.value = err.message || '验证码发送失败，请重试'
+  } finally {
+    codeSending.value = false
+  }
+}
+
+onUnmounted(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
+})
+
 const validateForm = () => {
   // 用户名可以留空，由后端随机生成 yunmo_ 开头的账号（见输入框提示）
   if (!form.email.trim()) {
     return '请输入邮箱'
   }
-  if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) {
+  if (!EMAIL_PATTERN.test(form.email)) {
     return '邮箱格式不正确'
+  }
+  // 邮箱为强制绑定项，必须通过验证码验证后才能注册
+  if (!form.code.trim()) {
+    return '请输入邮箱验证码'
+  }
+  if (!CODE_PATTERN.test(form.code.trim())) {
+    return '邮箱验证码为 6 位数字'
   }
   if (!form.password) {
     return '请输入密码'
@@ -57,6 +118,7 @@ const handleSubmit = async () => {
   const result = await authStore.register({
     username: form.username.trim(),
     email: form.email.trim(),
+    code: form.code.trim(),
     password: form.password,
     nickname: form.nickname.trim() || form.username.trim(),
   })
@@ -137,6 +199,40 @@ const goLogin = () => {
                 @keydown.enter="handleSubmit"
               />
             </div>
+          </div>
+
+          <div class="form-group">
+            <label for="code" class="form-label">邮箱验证码 <span class="required">*</span></label>
+            <div class="form-input-wrapper code-wrapper">
+              <svg class="form-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 3l7 4v5c0 4.5-3 8.2-7 9-4-.8-7-4.5-7-9V7z"/>
+                <path d="M9 12l2 2 4-4"/>
+              </svg>
+              <input
+                id="code"
+                v-model="form.code"
+                type="text"
+                class="form-input"
+                placeholder="6 位数字"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                required
+                @keydown.enter="handleSubmit"
+              />
+              <button
+                type="button"
+                class="code-btn"
+                :disabled="countdown > 0 || codeSending"
+                @click="handleSendCode"
+              >
+                <span v-if="countdown > 0">{{ countdown }}s 后重发</span>
+                <span v-else-if="codeSending">发送中...</span>
+                <span v-else>发送验证码</span>
+              </button>
+            </div>
+            <p v-if="codeMessage" class="form-hint form-hint--strong">{{ codeMessage }}</p>
+            <p v-else class="form-hint">邮箱为强制绑定项，请先点击右侧按钮获取验证码（5 分钟内有效）</p>
           </div>
 
           <div class="form-group">
@@ -453,6 +549,43 @@ const goLogin = () => {
   color: var(--color-text-muted);
 }
 
+/* 邮箱验证码 */
+.code-wrapper .form-input {
+  padding-right: 148px;
+}
+
+.code-btn {
+  position: absolute;
+  right: 8px;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--ghibli-sky-100);
+  color: var(--ghibli-sky-700);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+  transition: var(--transition-gentle);
+}
+
+.code-btn:hover:not(:disabled) {
+  background: var(--ghibli-sky-200);
+  color: var(--ghibli-sky-800);
+}
+
+.code-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.code-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.form-hint--strong {
+  color: var(--ghibli-sky-700);
+}
+
 /* Checkbox */
 .checkbox-wrapper {
   display: flex;
@@ -583,6 +716,7 @@ const goLogin = () => {
 
   .form-input,
   .form-toggle-password,
+  .code-btn,
   .checkbox-custom,
   .link {
     transition: none;

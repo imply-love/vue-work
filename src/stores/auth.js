@@ -12,6 +12,8 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isLoggedIn = computed(() => !!token.value && !!user.value)
   const userInfo = computed(() => user.value)
+  // 角色：users 表 role 字段，0-普通用户 1-管理员
+  const isAdmin = computed(() => user.value?.role === 1)
 
   // Actions
   async function login(credentials) {
@@ -83,6 +85,27 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function updatePhone(data) {
+    loading.value = true
+    error.value = ''
+    try {
+      const response = await userApi.updatePhone(data)
+      if (response.code === 0) {
+        // 后端返回最新资料，直接覆盖本地缓存，页面无需重新拉取
+        user.value = { ...user.value, ...response.data }
+        localStorage.setItem('user', JSON.stringify(user.value))
+        return { success: true, message: response.message }
+      }
+      error.value = response.message
+      return { success: false, message: response.message }
+    } catch (err) {
+      error.value = err.message || '保存失败'
+      return { success: false, message: err.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function fetchProfile() {
     if (!token.value) return
     try {
@@ -114,9 +137,11 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     isLoggedIn,
     userInfo,
+    isAdmin,
     login,
     register,
     updateProfile,
+    updatePhone,
     fetchProfile,
     logout,
     clearError,

@@ -57,42 +57,42 @@ const routes = [
     component: () => import('@/views/about/AboutView.vue'),
     meta: { title: '关于我们' },
   },
-  // 测试页面路由
+  // 测试页面路由（仅管理员可见和使用）
   {
     path: '/test',
     name: 'TestDashboard',
     component: () => import('@/views/test/TestDashboard.vue'),
-    meta: { title: '测试中心' },
+    meta: { title: '测试中心', requiresAdmin: true },
   },
   {
     path: '/test/api',
     name: 'TestAPI',
     component: () => import('@/views/test/TestAPI.vue'),
-    meta: { title: 'API 接口测试' },
+    meta: { title: 'API 接口测试', requiresAdmin: true },
   },
   {
     path: '/test/components',
     name: 'TestComponents',
     component: () => import('@/views/test/TestComponents.vue'),
-    meta: { title: '组件视觉测试' },
+    meta: { title: '组件视觉测试', requiresAdmin: true },
   },
   {
     path: '/test/responsive',
     name: 'TestResponsive',
     component: () => import('@/views/test/TestResponsive.vue'),
-    meta: { title: '响应式测试' },
+    meta: { title: '响应式测试', requiresAdmin: true },
   },
   {
     path: '/test/accessibility',
     name: 'TestAccessibility',
     component: () => import('@/views/test/TestAccessibility.vue'),
-    meta: { title: '无障碍测试' },
+    meta: { title: '无障碍测试', requiresAdmin: true },
   },
   {
     path: '/test/e2e',
     name: 'TestE2E',
     component: () => import('@/views/test/TestE2E.vue'),
-    meta: { title: '端到端测试' },
+    meta: { title: '端到端测试', requiresAdmin: true },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -130,6 +130,12 @@ router.beforeEach(async (to, from, next) => {
 
   // 仅游客可访问的页面（登录、注册）
   if (to.meta.guest && authStore.isLoggedIn) {
+    next({ name: 'Home' })
+    return
+  }
+
+  // 仅管理员可访问的页面（测试中心）：未登录或非管理员一律回首页
+  if (to.meta.requiresAdmin && (!authStore.isLoggedIn || !authStore.isAdmin)) {
     next({ name: 'Home' })
     return
   }

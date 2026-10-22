@@ -18,6 +18,10 @@ CODE_USER_DISABLED = 1006  # 账号已被禁用
 CODE_TOKEN_INVALID = 1007  # 登录状态无效或已过期
 CODE_NO_PERMISSION = 1008  # 无权访问该资源
 CODE_NOT_FOUND = 1009  # 资源不存在
+CODE_CODE_INVALID = 1010  # 邮箱验证码错误或已过期
+CODE_CODE_TOO_FREQUENT = 1011  # 验证码发送过于频繁
+CODE_PHONE_EXISTS = 1012  # 该手机号已被其他账号绑定
+CODE_MAIL_SEND_FAILED = 1013  # 验证码邮件发送失败
 CODE_DB_ERROR = 2000  # 数据库操作失败
 CODE_SERVER_ERROR = 3000  # 服务器内部错误
 

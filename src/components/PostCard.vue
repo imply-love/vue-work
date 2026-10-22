@@ -10,6 +10,16 @@ const props = defineProps({
 
 const emits = defineEmits(['click'])
 
+// 标签字段为逗号分隔字符串，转成数组便于逐个渲染（最多展示 3 个）
+const tagList = computed(() => {
+  if (!props.post.tags) return []
+  return props.post.tags
+    .split(/[,，]/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+})
+
 const formattedTime = computed(() => {
   if (!props.post.create_time) return ''
   const date = new Date(props.post.create_time)
@@ -71,6 +81,14 @@ const handleClick = (e) => {
     </div>
 
     <div class="post-card__content">
+      <div class="post-card__badges">
+        <span v-if="post.category" class="post-card__category">{{ post.category }}</span>
+        <span
+          v-for="tag in tagList"
+          :key="tag"
+          class="post-card__tag"
+        >#{{ tag }}</span>
+      </div>
       <h3 class="post-card__title">{{ post.title }}</h3>
       <p v-if="post.excerpt" class="post-card__excerpt">
         {{ post.excerpt }}
@@ -208,6 +226,31 @@ const handleClick = (e) => {
 .post-card__content {
   padding: var(--space-8) var(--space-10) var(--space-6);
   flex: 1;
+}
+
+.post-card__badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.post-card__category {
+  padding: 2px 10px;
+  background: linear-gradient(135deg, var(--ghibli-sky-100), var(--ghibli-sky-200));
+  color: var(--ghibli-sky-700);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.post-card__tag {
+  padding: 2px 8px;
+  background: var(--ghibli-sakura-50);
+  color: var(--ghibli-sakura-600);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
 }
 
 .post-card__title {

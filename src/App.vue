@@ -9,7 +9,7 @@ let progressTimer = null
 // 全局装饰与吐司容器（模板里通过 ref="particlesContainer" / ref="toastContainer" 绑定）
 const particlesContainer = ref(null)
 const toastContainer = ref(null)
-
+  
 // 创建飞行粒子
 const createParticles = () => {
   if (!particlesContainer.value) return

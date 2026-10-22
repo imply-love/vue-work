@@ -73,7 +73,7 @@ async function sendRequest() {
     }
 
     const res = await fetch(url.toString(), options)
-    const data = await res.json().catch(() => ({ _raw: await res.text() }))
+    const data = await res.json().catch(async () => ({ _raw: await res.text() }))
     const duration = performance.now() - start
 
     response.value = { status: res.status, ok: res.ok, headers: Object.fromEntries(res.headers), data }

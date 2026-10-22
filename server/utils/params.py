@@ -5,6 +5,9 @@ from flask import request
 
 EMAIL_PATTERN = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
+# 中国大陆手机号
+PHONE_PATTERN = re.compile(r"^1[3-9]\d{9}$")
+
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 50
@@ -37,6 +40,11 @@ def require(body, *fields):
 def is_valid_email(email):
     """常规邮箱格式校验。"""
     return bool(EMAIL_PATTERN.match(email or ""))
+
+
+def is_valid_phone(phone):
+    """中国大陆手机号格式校验。"""
+    return bool(PHONE_PATTERN.match(phone or ""))
 
 
 def parse_page_args():
