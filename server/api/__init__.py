@@ -10,10 +10,17 @@
 
 api/posts.py 是「公开分页接口」范式，api/users.py 是「需登录接口」范式，可直接照抄。
 """
+from api.admin import bp as admin_bp
 from api.anime_requests import bp as anime_requests_bp
+from api.animes import bp as animes_bp
+from api.announcements import bp as announcements_bp
+from api.appeals import bp as appeals_bp
 from api.auth import bp as auth_bp
 from api.email import bp as email_bp
 from api.favorites import bp as favorites_bp
+from api.friends import bp as friends_bp
+from api.identity import bp as identity_bp
+from api.notifications import bp as notifications_bp
 from api.posts import bp as posts_bp
 from api.replies import bp as replies_bp
 from api.resources import bp as resources_bp
@@ -25,9 +32,16 @@ BLUEPRINTS = [
     posts_bp,
     users_bp,
     anime_requests_bp,
+    animes_bp,
+    announcements_bp,
     resources_bp,
     favorites_bp,
     replies_bp,
+    friends_bp,
+    identity_bp,
+    notifications_bp,
+    appeals_bp,
+    admin_bp,
 ]
 
 

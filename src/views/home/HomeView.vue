@@ -1,284 +1,362 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePostStore } from '@/stores/posts'
+import { announcementApi, postApi } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import PostCard from '@/components/PostCard.vue'
 
 const router = useRouter()
-const postStore = usePostStore()
 const authStore = useAuthStore()
 
-const loading = ref(false)
-const showLoadMore = ref(false)
+const announcements = ref([])
 
-const loadPosts = async (append = false) => {
-  loading.value = true
-  const result = await postStore.fetchPosts(append ? postStore.pagination.page + 1 : 1, append)
-  loading.value = false
-  showLoadMore.value = postStore.hasMore && result.success
-}
-
-const handleLoadMore = async () => {
-  if (loading.value || !postStore.hasMore) return
-  loading.value = true
-  const result = await postStore.loadMore()
-  loading.value = false
-  showLoadMore.value = postStore.hasMore && result.success
-}
-
-const handleScroll = () => {
-  // 可选：实现无限滚动加载
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement
-  if (scrollTop + clientHeight >= scrollHeight - 200 && !loading.value && postStore.hasMore) {
-    handleLoadMore()
+const loadAnnouncements = async () => {
+  try {
+    const res = await announcementApi.getList()
+    if (res.code === 0) {
+      announcements.value = res.data.list || []
+    }
+  } catch {
+    // 公告加载失败不影响首页主体内容
+    announcements.value = []
   }
 }
 
+const posts = ref([])
+const loading = ref(false)
+const error = ref('')
+const page = ref(1)
+const total = ref(0)
+const pageSize = 12
+const sort = ref('latest')
+
+const SORTS = [
+  { value: 'latest', label: '最新' },
+  { value: 'hot', label: '最热' },
+  { value: 'recommended', label: '小编推荐' },
+]
+
+const load = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const res = await postApi.getList({ page: page.value, page_size: pageSize, sort: sort.value })
+    if (res.code === 0) {
+      posts.value = res.data.list
+      total.value = res.data.total
+    } else {
+      error.value = res.message
+    }
+  } catch (err) {
+    error.value = err.message || '获取帖子失败'
+  } finally {
+    loading.value = false
+  }
+}
+
+const changeSort = (value) => {
+  sort.value = value
+  page.value = 1
+  load()
+}
+
+const changePage = (value) => {
+  page.value = value
+  load()
+}
+
+const goDetail = (id) => router.push(`/posts/${id}`)
+const goLogin = () => router.push({ name: 'Login', query: { redirect: '/' } })
+
 onMounted(() => {
-  loadPosts()
-  window.addEventListener('scroll', handleScroll)
+  load()
+  loadAnnouncements()
 })
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-})
-
-const goPostDetail = (id) => {
-  router.push(`/posts/${id}`)
-}
-
-const goLogin = () => {
-  router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
-}
 </script>
 
 <template>
-  <div class="home-page">
-    <!-- 顶部横幅 -->
-    <section class="home-banner" aria-labelledby="banner-title">
-      <div class="banner-content">
-        <h1 id="banner-title" class="banner-title">番剧同好会</h1>
-        <p class="banner-subtitle">追番、安利、找同好</p>
-        <p class="banner-desc">在这里记录你的追番进度，分享让你熬夜的神作，认识一群聊得来的同好</p>
-        <div class="banner-actions">
-          <button
-            v-if="!authStore.isLoggedIn"
-            class="ghibli-btn ghibli-btn--primary ghibli-btn--lg"
-            @click="goLogin"
-          >
-            <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="8.5" cy="7" r="4"/>
-              <line x1="20" y1="8" x2="20" y2="14"/>
-              <line x1="23" y1="11" x2="17" y2="11"/>
-            </svg>
+  <div class="page-wrap">
+    <section class="home-hero page-hero">
+      <div class="home-hero__text">
+        <h1 class="page-title">番剧同好会</h1>
+        <p class="home-hero__sub">追番、安利、找同好</p>
+        <p class="page-sub">
+          在这里记录你的追番进度，分享让你熬夜的神作，认识一群聊得来的同好。
+        </p>
+        <div class="home-hero__actions">
+          <lay-button v-if="!authStore.isLoggedIn" type="primary" size="lg" @click="goLogin">
             加入同好会
-          </button>
-          <a
-            v-else
-            class="ghibli-btn ghibli-btn--primary ghibli-btn--lg"
-            href="#posts-list"
-          >
-            <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            看看大家在聊什么
-          </a>
+          </lay-button>
+          <lay-button v-else type="primary" size="lg" @click="router.push('/posts/new')">
+            发个新帖
+          </lay-button>
+          <lay-button size="lg" @click="router.push('/content/posts')">内容管理</lay-button>
         </div>
       </div>
-      <div class="banner-decor" aria-hidden="true">
-        <div class="banner-line"></div>
-        <div class="banner-line"></div>
-        <div class="banner-line"></div>
+      <div class="home-hero__decor" aria-hidden="true">
+        <div class="home-hero__sun"></div>
+        <div class="home-hero__cloud home-hero__cloud--1"></div>
+        <div class="home-hero__cloud home-hero__cloud--2"></div>
       </div>
     </section>
 
-    <!-- 帖子列表 -->
-    <section id="posts-list" class="ghibli-section home-posts" aria-labelledby="posts-title">
-      <header class="ghibli-section__header">
-        <h2 id="posts-title" class="ghibli-section__title">最新讨论</h2>
-        <p class="ghibli-section__desc">刚出锅的帖子还热乎，点进去一起聊</p>
-      </header>
-
-      <div class="ghibli-section__content">
-        <div v-if="postStore.posts.length === 0 && !loading" class="ghibli-empty">
-          <svg class="ghibli-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          <h3 class="ghibli-empty__title">还没有人开口</h3>
-          <p class="ghibli-empty__desc">成为第一个开帖的同好吧，安利你最爱的番</p>
+    <!-- 公告栏：管理员在后台发布，前台公开展示 -->
+    <section v-if="announcements.length" class="announce-section">
+      <div class="page-toolbar">
+        <h2 class="home-section-title">公告</h2>
+        <div class="page-toolbar__spacer"></div>
+        <span class="muted announce-count">共 {{ announcements.length }} 条</span>
+      </div>
+      <lay-card>
+        <div
+          v-for="(item, index) in announcements"
+          :key="item.id"
+          class="announce-item"
+          :class="{ 'announce-item--last': index === announcements.length - 1 }"
+        >
+          <span class="announce-item__badge">公告</span>
+          <div class="announce-item__main">
+            <h3 class="announce-item__title">{{ item.title }}</h3>
+            <p class="announce-item__content">{{ item.content }}</p>
+          </div>
+          <span v-if="item.publish_time" class="announce-item__time">{{ item.publish_time }}</span>
         </div>
+      </lay-card>
+    </section>
 
-        <div v-else class="posts-grid ghibli-cards">
-          <PostCard
-            v-for="post in postStore.posts"
-            :key="post.id"
-            :post="post"
-            @click="goPostDetail(post.id)"
-          />
-        </div>
-
-        <!-- 加载更多 -->
-        <div v-if="showLoadMore" class="load-more">
+    <section>
+      <div class="page-toolbar">
+        <h2 class="home-section-title">最新讨论</h2>
+        <div class="page-toolbar__spacer"></div>
+        <div class="home-sorts">
           <button
-            class="ghibli-btn ghibli-btn--outline"
-            @click="handleLoadMore"
-            :disabled="loading"
+            v-for="item in SORTS"
+            :key="item.value"
+            type="button"
+            class="home-sort"
+            :class="{ 'home-sort--active': sort === item.value }"
+            @click="changeSort(item.value)"
           >
-            <span v-if="loading" class="ghibli-btn__loading">
-              <span class="ghibli-spinner" aria-hidden="true"></span>
-              加载中...
-            </span>
-            <span v-else class="ghibli-btn__loading">
-              <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polyline points="23 4 12 15 1 4"/>
-              </svg>
-              加载更多
-            </span>
+            {{ item.label }}
           </button>
         </div>
+      </div>
 
-        <!-- 加载错误 -->
-        <div v-if="postStore.error && postStore.posts.length === 0" class="ghibli-empty">
-          <svg class="ghibli-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="15" y1="9" x2="9" y2="15"/>
-            <line x1="9" y1="9" x2="15" y2="15"/>
-          </svg>
-          <h3 class="ghibli-empty__title">帖子走丢了</h3>
-          <p class="ghibli-empty__desc">{{ postStore.error }}</p>
-          <button class="ghibli-btn ghibli-btn--warm" @click="loadPosts">
-            <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path d="M23 4v6h-6"/>
-              <path d="M1 20v-6h6"/>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-            </svg>
-            重试
-          </button>
+      <lay-card v-if="loading && posts.length === 0">
+        <div class="empty-box">正在召集同好们……</div>
+      </lay-card>
+
+      <lay-card v-else-if="error">
+        <div class="empty-box">
+          <h3 class="empty-box__title">帖子走丢了</h3>
+          <p>{{ error }}</p>
+          <lay-button type="primary" @click="load">重试</lay-button>
         </div>
+      </lay-card>
+
+      <lay-card v-else-if="posts.length === 0">
+        <div class="empty-box">
+          <h3 class="empty-box__title">还没有人开口</h3>
+          <p>成为第一个开帖的同好吧，安利你最爱的番。</p>
+          <lay-button type="primary" @click="router.push('/posts/new')">去发帖</lay-button>
+        </div>
+      </lay-card>
+
+      <div v-else class="post-grid">
+        <PostCard v-for="post in posts" :key="post.id" :post="post" @click="goDetail(post.id)" />
+      </div>
+
+      <div v-if="total > pageSize" class="pagination-wrap">
+        <lay-page
+          v-model="page"
+          :total="total"
+          :limit="pageSize"
+          :limits="[12, 24, 36]"
+          :layout="['prev', 'page', 'next', 'count']"
+          @change="changePage"
+        />
       </div>
     </section>
   </div>
 </template>
 
 <style scoped>
-.home-page {
-  min-height: 100%;
-}
-
-/* ===== 顶部横幅 ===== */
-.home-banner {
-  position: relative;
-  min-height: 52vh;
-  max-height: 640px;
+.home-hero {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-20) var(--space-6) var(--space-16);
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-16) var(--space-10);
+}
+
+.home-hero__text {
+  position: relative;
+  z-index: 2;
+  max-width: 560px;
+}
+
+.home-hero__sub {
+  font-family: var(--font-handwriting);
+  font-size: var(--text-lg);
+  color: var(--ghibli-sakura-600);
+  letter-spacing: 0.18em;
+  margin: 0 0 var(--space-4);
+}
+
+.home-hero__actions {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-6);
+}
+
+.home-hero__decor {
+  position: relative;
+  width: 260px;
+  height: 180px;
+  flex-shrink: 0;
+}
+
+.home-hero__sun {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ghibli-sun-200), var(--ghibli-sun-400));
+  box-shadow: 0 0 60px rgba(251, 191, 36, 0.45);
+}
+
+.home-hero__cloud {
+  position: absolute;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 6px 18px rgba(125, 211, 252, 0.35);
+}
+
+.home-hero__cloud--1 {
+  width: 130px;
+  left: 0;
+  bottom: 40px;
+}
+
+.home-hero__cloud--2 {
+  width: 90px;
+  right: 20px;
+  bottom: 0;
+}
+
+.home-section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  margin: 0;
+}
+
+/* 公告栏 */
+.announce-section {
+  margin-bottom: var(--space-8);
+}
+
+.announce-count {
+  font-size: var(--text-sm);
+}
+
+.announce-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+}
+
+.announce-item--last {
+  padding-bottom: 0;
+}
+
+.announce-item__badge {
+  flex-shrink: 0;
+  padding: 1px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  line-height: 18px;
+  background: var(--ghibli-sky-100, #e0f2fe);
+  color: var(--ghibli-sky-800, #1e3a8a);
+}
+
+.announce-item__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.announce-item__title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-base);
+  color: var(--color-text);
+}
+
+.announce-item__content {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+  color: var(--color-text-muted);
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.banner-content {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-  max-width: 800px;
+.announce-item__time {
+  flex-shrink: 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-light);
+  white-space: nowrap;
 }
 
-.banner-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  letter-spacing: 0.04em;
-  margin: 0 0 var(--space-4);
-  background: linear-gradient(135deg, var(--ghibli-sky-600) 0%, var(--ghibli-sakura-500) 50%, var(--ghibli-sun-400) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.banner-subtitle {
-  font-family: var(--font-handwriting);
-  font-size: clamp(1rem, 2.5vw, 1.375rem);
-  color: var(--ghibli-sakura-600);
-  letter-spacing: 0.2em;
-  margin: 0 0 var(--space-6);
-}
-
-.banner-desc {
-  font-size: clamp(1rem, 1.5vw, 1.125rem);
-  color: var(--color-text-muted);
-  line-height: var(--leading-relaxed);
-  margin: 0 auto var(--space-10);
-  max-width: 620px;
-}
-
-.banner-actions {
+.home-sorts {
   display: flex;
-  gap: var(--space-6);
-  justify-content: center;
-  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--ghibli-paper-200);
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
 }
 
-.banner-decor {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+.home-sort {
+  border: none;
+  background: transparent;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-gentle);
 }
 
-.banner-line {
-  position: absolute;
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, var(--ghibli-sky-300), transparent);
-  opacity: 0.5;
+.home-sort--active {
+  background: var(--color-bg-elevated);
+  color: var(--ghibli-sky-700);
+  font-weight: var(--font-semibold);
+  box-shadow: var(--shadow-xs);
 }
 
-.banner-line:nth-child(1) { left: 20%; animation: lineFlow 8s ease-in-out infinite; }
-.banner-line:nth-child(2) { left: 50%; animation: lineFlow 8s ease-in-out infinite 1.5s; }
-.banner-line:nth-child(3) { left: 80%; animation: lineFlow 8s ease-in-out infinite 3s; }
-
-@keyframes lineFlow {
-  0%, 100% { opacity: 0.15; transform: scaleY(0.5); }
-  50% { opacity: 0.6; transform: scaleY(1); }
-}
-
-/* ===== 帖子列表 ===== */
-.home-posts {
-  scroll-margin-top: 96px;
-}
-
-.load-more {
-  text-align: center;
-  margin-top: var(--space-12);
-}
-
-/* ===== 响应式 ===== */
 @media (max-width: 768px) {
-  .home-banner {
-    min-height: 46vh;
-    padding: var(--space-16) var(--space-4) var(--space-12);
+  .home-hero {
+    padding: var(--space-10) var(--space-6);
   }
-}
 
-@media (max-width: 480px) {
-  .banner-actions {
+  .home-hero__decor {
+    display: none;
+  }
+
+  .announce-item {
     flex-direction: column;
-    align-items: center;
+    gap: var(--space-2);
   }
 
-  .banner-actions .ghibli-btn {
-    width: 100%;
-    max-width: 280px;
-  }
-}
-
-/* ===== 减少动画偏好 ===== */
-@media (prefers-reduced-motion: reduce) {
-  .banner-line {
-    animation: none;
+  .announce-item__time {
+    white-space: normal;
   }
 }
 </style>

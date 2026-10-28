@@ -27,6 +27,82 @@ const routes = [
     meta: { title: '个人中心', requiresAuth: true },
   },
   {
+    path: '/profile/following',
+    name: 'Following',
+    component: () => import('@/views/profile/UserRelationView.vue'),
+    meta: { title: '我的关注', requiresAuth: true, relation: 'following' },
+  },
+  {
+    path: '/profile/followers',
+    name: 'Followers',
+    component: () => import('@/views/profile/UserRelationView.vue'),
+    meta: { title: '我的粉丝', requiresAuth: true, relation: 'followers' },
+  },
+  {
+    path: '/profile/likes',
+    name: 'ReceivedLikes',
+    component: () => import('@/views/profile/UserRelationView.vue'),
+    meta: { title: '获赞列表', requiresAuth: true, relation: 'likes' },
+  },
+  {
+    path: '/profile/identity',
+    name: 'IdentityApply',
+    component: () => import('@/views/profile/IdentityView.vue'),
+    meta: { title: '身份申请', requiresAuth: true },
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import('@/views/profile/NotificationsView.vue'),
+    meta: { title: '消息通知', requiresAuth: true },
+  },
+  {
+    path: '/friends',
+    name: 'Friends',
+    component: () => import('@/views/friends/FriendsView.vue'),
+    meta: { title: '好友', requiresAuth: true },
+  },
+  {
+    path: '/appeal',
+    name: 'Appeal',
+    component: () => import('@/views/appeal/AppealView.vue'),
+    meta: { title: '账号申诉', requiresAuth: true },
+  },
+  {
+    path: '/content',
+    redirect: '/content/posts',
+  },
+  {
+    path: '/content/posts',
+    name: 'ContentPosts',
+    component: () => import('@/views/content/ContentManageView.vue'),
+    meta: { title: '帖子管理', requiresAuth: true, tab: 'posts' },
+  },
+  {
+    path: '/content/comments',
+    name: 'ContentComments',
+    component: () => import('@/views/content/ContentManageView.vue'),
+    meta: { title: '评论管理', requiresAuth: true, tab: 'comments' },
+  },
+  {
+    path: '/content/drafts',
+    name: 'ContentDrafts',
+    component: () => import('@/views/content/ContentManageView.vue'),
+    meta: { title: '草稿箱', requiresAuth: true, tab: 'drafts' },
+  },
+  {
+    path: '/posts/new',
+    name: 'PostCreate',
+    component: () => import('@/views/content/PostEditorView.vue'),
+    meta: { title: '发布帖子', requiresAuth: true },
+  },
+  {
+    path: '/posts/:id/edit',
+    name: 'PostEdit',
+    component: () => import('@/views/content/PostEditorView.vue'),
+    meta: { title: '编辑帖子', requiresAuth: true },
+  },
+  {
     path: '/posts/:id',
     name: 'PostDetail',
     component: () => import('@/views/home/PostDetailView.vue'),
@@ -49,13 +125,20 @@ const routes = [
     path: '/skills',
     name: 'Skills',
     component: () => import('@/views/skills/SkillsView.vue'),
-    meta: { title: '资源分享' },
+    // 资源分享未登录严禁查看
+    meta: { title: '资源分享', requiresAuth: true },
   },
   {
     path: '/about',
     name: 'About',
     component: () => import('@/views/about/AboutView.vue'),
     meta: { title: '关于我们' },
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/views/admin/AdminView.vue'),
+    meta: { title: '管理后台', requiresAdmin: true },
   },
   // 测试页面路由（仅管理员可见和使用）
   {

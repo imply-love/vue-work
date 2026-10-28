@@ -13,6 +13,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // @layui/layer-vue 的 exports 未声明 ./lib/index.css，直接子路径导入在 Vite 下会解析失败
+      '@layui/layer-vue/lib/index.css': fileURLToPath(
+        new URL('./node_modules/@layui/layer-vue/lib/index.css', import.meta.url)
+      ),
     },
   },
   publicDir: 'public',
@@ -36,7 +40,8 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: 'esbuild',
+    // Vite 8 已改用 oxc 做压缩，内置 esbuild 压缩入口需要额外安装 esbuild
+    minify: 'oxc',
     cssCodeSplit: true,
     rollupOptions: {
       output: {

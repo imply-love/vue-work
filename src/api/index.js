@@ -26,6 +26,13 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+// token 失效时的回调：由 main.js 注入，用于同步清理 Pinia 里的登录态，
+// 避免 localStorage 已清空但内存里仍是「已登录」导致登录页又被弹回首页。
+let tokenInvalidHandler = null
+export const setTokenInvalidHandler = (handler) => {
+  tokenInvalidHandler = handler
+}
+
 // 响应拦截器：统一错误处理
 api.interceptors.response.use(
   (response) => response.data,
@@ -35,10 +42,13 @@ api.interceptors.response.use(
       // 后端返回的业务错误码
       const { code, message } = response.data || {}
       if (code === 1007) {
-        // token 无效或过期，清除本地存储并跳转登录
+        // token 无效或过期，清除本地存储与内存登录态并跳转登录
         localStorage.removeItem('token')
         localStorage.removeItem('user')
-        window.location.href = '/login'
+        tokenInvalidHandler?.()
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login'
+        }
       }
       return Promise.reject({ code, message: message || '请求失败' })
     }
@@ -96,6 +106,159 @@ export const userApi = {
   follow(userId) {
     return api.post(`/users/${userId}/follow`)
   },
+  // 我的关注列表
+  getFollowing(params = {}) {
+    return api.get('/user/following', { params })
+  },
+  // 我的粉丝列表
+  getFollowers(params = {}) {
+    return api.get('/user/followers', { params })
+  },
+  // 我获得的点赞（按帖子聚合）
+  getReceivedLikes(params = {}) {
+    return api.get('/user/received-likes', { params })
+  },
+  // 某个用户的公开资料卡
+  getUserCard(userId) {
+    return api.get(`/users/${userId}`)
+  },
+  // 提交账号申诉
+  submitAppeal(data) {
+    return api.post('/user/appeal', data)
+  },
+  // 我的申诉记录
+  getAppeals(params = {}) {
+    return api.get('/user/appeals', { params })
+  },
+  // 我的评论
+  getMyReplies(params = {}) {
+    return api.get('/user/replies', { params })
+  },
+}
+
+// 好友相关 API
+export const friendApi = {
+  // 发起好友申请 { user_id, message }
+  sendRequest(data) {
+    return api.post('/friends/requests', data)
+  },
+  // 好友申请列表 direction=incoming|outgoing
+  getRequests(params = {}) {
+    return api.get('/friends/requests', { params })
+  },
+  // 处理好友申请 { action: 'accept' | 'reject' }
+  handleRequest(id, data) {
+    return api.put(`/friends/requests/${id}`, data)
+  },
+  // 待处理申请数量
+  getPendingCount() {
+    return api.get('/friends/pending-count')
+  },
+  // 好友列表
+  getFriends(params = {}) {
+    return api.get('/friends', { params })
+  },
+  // 解除好友
+  removeFriend(userId) {
+    return api.delete(`/friends/${userId}`)
+  },
+}
+
+// 管理后台 API（仅管理员）
+export const adminApi = {
+  // 看板数据（统计 + 趋势 + 状态分布 + 待办清单）
+  getDashboard() {
+    return api.get('/admin/dashboard')
+  },
+  getPosts(params = {}) {
+    return api.get('/admin/posts', { params })
+  },
+  reviewPost(id, data) {
+    return api.put(`/admin/posts/${id}/review`, data)
+  },
+  // 评论审查
+  getComments(params = {}) {
+    return api.get('/admin/comments', { params })
+  },
+  reviewComment(id, data) {
+    return api.put(`/admin/comments/${id}/review`, data)
+  },
+  // 资源分享审查
+  getResources(params = {}) {
+    return api.get('/admin/resources', { params })
+  },
+  reviewResource(id, data) {
+    return api.put(`/admin/resources/${id}/review`, data)
+  },
+  // 求番审查
+  getAnimeRequests(params = {}) {
+    return api.get('/admin/anime-requests', { params })
+  },
+  reviewAnimeRequest(id, data) {
+    return api.put(`/admin/anime-requests/${id}/review`, data)
+  },
+  // 番剧推荐审查
+  getRecommendations(params = {}) {
+    return api.get('/admin/anime-recommendations', { params })
+  },
+  reviewRecommendation(id, data) {
+    return api.put(`/admin/anime-recommendations/${id}/review`, data)
+  },
+  // 身份申请审批
+  getIdentityApplications(params = {}) {
+    return api.get('/admin/identity-applications', { params })
+  },
+  handleIdentityApplication(id, data) {
+    return api.put(`/admin/identity-applications/${id}`, data)
+  },
+  getUsers(params = {}) {
+    return api.get('/admin/users', { params })
+  },
+  banUser(id, data) {
+    return api.put(`/admin/users/${id}/ban`, data)
+  },
+  unbanUser(id) {
+    return api.put(`/admin/users/${id}/unban`)
+  },
+  // 禁用 / 启用账号（禁用后无法登录，可再次启用）
+  disableUser(id) {
+    return api.put(`/admin/users/${id}/disable`)
+  },
+  enableUser(id) {
+    return api.put(`/admin/users/${id}/enable`)
+  },
+  getAppeals(params = {}) {
+    return api.get('/admin/appeals', { params })
+  },
+  handleAppeal(id, data) {
+    return api.put(`/admin/appeals/${id}`, data)
+  },
+  getStats() {
+    return api.get('/admin/stats')
+  },
+  // 公告管理
+  getAnnouncements(params = {}) {
+    return api.get('/admin/announcements', { params })
+  },
+  createAnnouncement(data) {
+    return api.post('/admin/announcements', data)
+  },
+  updateAnnouncement(id, data) {
+    return api.put(`/admin/announcements/${id}`, data)
+  },
+  setAnnouncementStatus(id, status) {
+    return api.put(`/admin/announcements/${id}/status`, { status })
+  },
+  removeAnnouncement(id) {
+    return api.delete(`/admin/announcements/${id}`)
+  },
+}
+
+// 公告 API（前台公开展示）
+export const announcementApi = {
+  getList() {
+    return api.get('/announcements')
+  },
 }
 
 // 收藏相关 API（个人中心「我的收藏」）
@@ -132,6 +295,22 @@ export const postApi = {
   getDrafts(params = {}) {
     return api.get('/posts/drafts', { params })
   },
+  // 内容管理：我的帖子（status=all|published|draft，含审查状态）
+  getMine(params = {}) {
+    return api.get('/posts/mine', { params })
+  },
+  // 快速设置可见性 0-公开 1-私密 2-仅好友
+  setVisibility(id, visibility) {
+    return api.put(`/posts/${id}/visibility`, { visibility })
+  },
+  // 多级评论树
+  getReplyTree(id) {
+    return api.get(`/posts/${id}/replies/tree`)
+  },
+  // 删除评论
+  removeReply(replyId) {
+    return api.delete(`/replies/${replyId}`)
+  },
   // 更新自己的帖子/草稿（需登录，仅作者）
   update(id, data) {
     return api.put(`/posts/${id}`, data)
@@ -166,15 +345,71 @@ export const animeRequestApi = {
   },
 }
 
+// 番剧库内容 API（管理员在后台录入，前台公开浏览）
+export const animeApi = {
+  getList(params = {}) {
+    return api.get('/animes', { params })
+  },
+  create(data) {
+    return api.post('/animes', data)
+  },
+  update(id, data) {
+    return api.put(`/animes/${id}`, data)
+  },
+  remove(id) {
+    return api.delete(`/animes/${id}`)
+  },
+}
+
+// 番剧推荐 API（番名、链接、推荐理由必填）
+export const animeRecommendationApi = {
+  getList(params = {}) {
+    return api.get('/anime-recommendations', { params })
+  },
+  create(data) {
+    return api.post('/anime-recommendations', data)
+  },
+}
+
+// 身份申请 API（番剧大佬 / 我就是资源）
+export const identityApi = {
+  getOverview() {
+    return api.get('/identity/overview')
+  },
+  apply(data) {
+    return api.post('/identity/applications', data)
+  },
+}
+
+// 站内通知 API
+export const notificationApi = {
+  getList(params = {}) {
+    return api.get('/notifications', { params })
+  },
+  getUnreadCount() {
+    return api.get('/notifications/unread-count')
+  },
+  read(id) {
+    return api.put(`/notifications/${id}/read`)
+  },
+  readAll() {
+    return api.put('/notifications/read-all')
+  },
+}
+
 // 资源分享相关 API（资源分享板块）
 export const resourceApi = {
-  // 获取资源列表
+  // 获取资源列表（必须登录，未登录返回 1007）
   getList(params = {}) {
     return api.get('/resources', { params })
   },
-  // 分享资源（需登录：管理员与普通用户均可）
+  // 分享资源（需登录；visibility 0-所有同好 1-仅管理员与特殊身份 2-仅自己）
   create(data) {
     return api.post('/resources', data)
+  },
+  // 删除资源（发布者本人或管理员）
+  remove(id) {
+    return api.delete(`/resources/${id}`)
   },
 }
 

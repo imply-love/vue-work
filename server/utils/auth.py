@@ -12,7 +12,9 @@ from flask import g, request
 
 from db import query_one
 from utils.response import (
+    CODE_NO_PERMISSION,
     CODE_TOKEN_INVALID,
+    CODE_USER_BANNED,
     CODE_USER_DISABLED,
     make_response,
 )
@@ -20,6 +22,11 @@ from utils.token import parse_token
 
 _CURRENT_USER_KEY = "current_user"
 _BEARER_PREFIX = "bearer "
+
+# 用户状态：1-正常 0-禁用（不可登录） 2-封禁（可登录、禁发言、可申诉）
+STATUS_NORMAL = 1
+STATUS_DISABLED = 0
+STATUS_BANNED = 2
 
 
 def get_current_user():
@@ -44,13 +51,14 @@ def try_get_current_user():
         "SELECT id, username, role, status FROM users WHERE id=%s",
         (user_id,),
     )
-    if user is None or user["status"] == 0:
+    if user is None or user["status"] == STATUS_DISABLED:
         return None
 
     g.current_user = {
         "id": user["id"],
         "username": user["username"],
         "role": user["role"],
+        "status": user["status"],
     }
     return g.current_user
 
@@ -69,17 +77,37 @@ def login_required(view):
         )
         if user is None:
             return make_response(CODE_TOKEN_INVALID, "登录状态无效或已过期")
-        if user["status"] == 0:
+        if user["status"] == STATUS_DISABLED:
             return make_response(CODE_USER_DISABLED, "账号已被禁用")
 
         g.current_user = {
             "id": user["id"],
             "username": user["username"],
             "role": user["role"],
+            "status": user["status"],
         }
         return view(*args, **kwargs)
 
     return wrapper
+
+
+def admin_required(view):
+    """管理员专用接口：必须已登录且 role=1，否则返回 1008。"""
+    @wraps(view)
+    @login_required
+    def wrapper(*args, **kwargs):
+        if g.current_user.get("role") != 1:
+            return make_response(CODE_NO_PERMISSION, "仅管理员可执行该操作")
+        return view(*args, **kwargs)
+
+    return wrapper
+
+
+def ensure_not_banned():
+    """封禁用户禁止发帖 / 评论，返回错误响应；正常用户返回 None。"""
+    if g.current_user.get("status") == STATUS_BANNED:
+        return make_response(CODE_USER_BANNED, "账号已被封禁，暂时无法进行该操作")
+    return None
 
 
 def _extract_token():

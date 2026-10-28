@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
+import { layer } from '@layui/layer-vue'
 import Head from './views/head.vue'
 
 // 页面加载进度条
@@ -68,8 +69,100 @@ const showToast = (options) => {
   }, options.duration || 4000)
 }
 
+// layui 风格输入弹窗：确认返回输入内容（可能为空串），取消返回 null
+const showPrompt = (options = {}) => {
+  const {
+    title = '请输入内容',
+    placeholder = '',
+    value = '',
+    formType = 2,
+    maxLength = 200,
+    yesText = '确定',
+  } = options
+
+  return new Promise((resolve) => {
+    let settled = false
+    const done = (result) => {
+      if (settled) return
+      settled = true
+      resolve(result)
+    }
+
+    layer.prompt({
+      title,
+      formType,
+      value,
+      maxLength,
+      placeholder,
+      btn: [
+        {
+          text: '取消',
+          callback: (id) => {
+            done(null)
+            layer.close(id)
+          },
+        },
+        {
+          text: yesText,
+          callback: (id, input) => {
+            done(String(input ?? '').trim())
+            layer.close(id)
+          },
+        },
+      ],
+      beforeClose: () => {
+        done(null)
+        return true
+      },
+    })
+  })
+}
+
+// layui 风格确认弹窗：确认返回 true，取消返回 false
+const showConfirm = (options = {}) => {
+  const {
+    title = '提示',
+    message = '',
+    yesText = '确定',
+    cancelText = '取消',
+  } = options
+
+  return new Promise((resolve) => {
+    let settled = false
+    const done = (result) => {
+      if (settled) return
+      settled = true
+      resolve(result)
+    }
+
+    layer.confirm(message, {
+      title,
+      btn: [
+        {
+          text: cancelText,
+          callback: (id) => {
+            done(false)
+            layer.close(id)
+          },
+        },
+        {
+          text: yesText,
+          callback: (id) => {
+            done(true)
+            layer.close(id)
+          },
+        },
+      ],
+      beforeClose: () => {
+        done(false)
+        return true
+      },
+    })
+  })
+}
+
 // 暴露给全局
-window.$ghibli = { showToast, createParticles }
+window.$ghibli = { showToast, createParticles, showPrompt, showConfirm }
 
 onMounted(() => {
   // 模拟页面加载进度

@@ -1,0 +1,354 @@
+/* ============================================================
+   Layui Vue 主题覆盖
+   目的：让 layui 组件（按钮、卡片、输入框、表格、分页、弹层）
+   与站内宫崎骏/动漫配色保持一致，同时保留 layui 的紧凑布局。
+   ============================================================ */
+
+:root {
+  /* 主题色：与 ghibli tokens 对齐 */
+  --global-primary-color: var(--ghibli-sky-500);
+  --global-normal-color: var(--ghibli-forest-500);
+  --global-warm-color: var(--ghibli-sun-500);
+  --global-danger-color: #e57373;
+  --global-checked-color: var(--ghibli-sky-600);
+  --global-info-color: var(--ghibli-sakura-500);
+
+  /* 圆角与字体 */
+  --global-border-radius: var(--radius-lg);
+  --button-border-radius: var(--radius-full);
+  --card-border-radius: var(--radius-xl);
+  --global-font-family: var(--font-body);
+}
+
+body,
+.layui-body,
+.layui-layout {
+  font-family: var(--font-body);
+  color: var(--color-text);
+}
+
+/* 卡片：纸感 + 柔和阴影 */
+.layui-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-normal) var(--ease-gentle),
+    transform var(--duration-normal) var(--ease-gentle);
+}
+
+.layui-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.layui-card-header {
+  background: linear-gradient(180deg, var(--ghibli-paper-50), transparent);
+  border-bottom: 1px solid var(--color-divider);
+  font-family: var(--font-display);
+  font-weight: var(--font-semibold);
+}
+
+/* 按钮：跟随主题色，去掉生硬直角 */
+.layui-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--button-border-radius);
+  font-family: var(--font-body);
+  transition: all var(--duration-fast) var(--ease-gentle);
+}
+
+.layui-btn-primary {
+  background: var(--ghibli-sky-500);
+  border-color: var(--ghibli-sky-500);
+}
+
+.layui-btn-primary:hover {
+  background: var(--ghibli-sky-600);
+  border-color: var(--ghibli-sky-600);
+}
+
+.layui-btn-normal {
+  background: var(--ghibli-forest-500);
+  border-color: var(--ghibli-forest-500);
+}
+
+.layui-btn-warm {
+  background: var(--ghibli-sun-500);
+  border-color: var(--ghibli-sun-500);
+}
+
+/* 输入框 */
+.layui-input,
+.layui-textarea,
+.layui-select {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+}
+
+.layui-input:focus,
+.layui-textarea:focus {
+  border-color: var(--ghibli-sky-400);
+  box-shadow: var(--focus-ring);
+}
+
+/* 表格 */
+.layui-table {
+  --layui-table-border-color: var(--color-divider);
+}
+
+.layui-table th {
+  background: var(--ghibli-paper-100);
+  color: var(--color-text);
+  font-weight: var(--font-semibold);
+}
+
+.layui-table tr:hover td {
+  background: var(--ghibli-sky-50);
+}
+
+/* 分页 */
+.layui-laypage a,
+.layui-laypage span {
+  border-radius: var(--radius-sm);
+}
+
+.layui-laypage .layui-laypage-curr .layui-laypage-em {
+  background: var(--ghibli-sky-500);
+}
+
+/* 弹层 */
+.layui-layer {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.layui-layer-title {
+  background: var(--ghibli-sky-50);
+  border-bottom: 1px solid var(--color-divider);
+  font-family: var(--font-display);
+  font-weight: var(--font-semibold);
+}
+
+/* 标签 / 徽章 */
+.layui-badge {
+  border-radius: var(--radius-full);
+}
+
+/* ============================================================
+   站内通用布局工具（配合 layui 组件使用）
+   ============================================================ */
+.page-wrap {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-16);
+}
+
+.page-hero {
+  position: relative;
+  border-radius: var(--radius-2xl);
+  padding: var(--space-10) var(--space-8);
+  margin-bottom: var(--space-8);
+  background: linear-gradient(135deg, var(--ghibli-sky-100), var(--ghibli-paper-50) 55%, var(--ghibli-sakura-100));
+  border: 1px solid var(--ghibli-sky-200);
+  overflow: hidden;
+}
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--ghibli-sky-800);
+  margin: 0 0 var(--space-3);
+}
+
+.page-sub {
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.page-toolbar__spacer {
+  flex: 1;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.danger-text {
+  color: var(--color-error);
+}
+
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  /* 让同一页所有帖子卡片高度一致 */
+  grid-auto-rows: 1fr;
+  gap: var(--space-6);
+}
+
+.list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px dashed var(--color-divider);
+}
+
+.list-row:last-child {
+  border-bottom: none;
+}
+
+.list-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-row__title {
+  font-weight: var(--font-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: var(--font-semibold);
+  background: linear-gradient(135deg, var(--ghibli-sky-400), var(--ghibli-forest-400));
+  flex-shrink: 0;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+}
+
+.stat-card {
+  text-align: center;
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-gentle);
+}
+
+.stat-card:hover {
+  border-color: var(--ghibli-sky-300);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+}
+
+.stat-card__value {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--ghibli-sky-700);
+}
+
+.stat-card__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+}
+
+.empty-box {
+  text-align: center;
+  padding: var(--space-16) var(--space-6);
+  color: var(--color-text-muted);
+}
+
+.empty-box__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.pagination-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.reply-tree {
+  margin-top: var(--space-6);
+}
+
+.reply-node {
+  padding: var(--space-4);
+  border-left: 2px solid var(--ghibli-sky-200);
+  margin-left: var(--space-4);
+  margin-bottom: var(--space-3);
+  background: var(--ghibli-paper-50);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.reply-node--root {
+  margin-left: 0;
+  border-left: none;
+  background: transparent;
+  padding: 0 var(--space-2);
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  line-height: 18px;
+  background: var(--ghibli-paper-200);
+  color: var(--color-text-light);
+}
+
+.status-tag--recommend { background: var(--ghibli-sun-100); color: var(--ghibli-sun-800); }
+.status-tag--reject { background: var(--color-warning-bg); color: var(--ghibli-warm-800); }
+.status-tag--ban { background: var(--color-error-bg); color: var(--color-error); }
+.status-tag--private { background: var(--ghibli-paper-200); color: var(--ghibli-ink-600); }
+.status-tag--friends { background: var(--ghibli-forest-50); color: var(--ghibli-forest-700); }
+.status-tag--pending { background: var(--ghibli-sky-100, #e0f2fe); color: var(--ghibli-sky-800, #1e3a8a); }
+

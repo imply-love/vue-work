@@ -1,15 +1,13 @@
 <script setup>
-import { ref, onMounted, computed, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { friendApi, notificationApi } from '@/api'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const siteTitle = ref('番剧同好会')
-const siteSubtitle = ref('追番、安利、找同好')
-// 导航项：测试中心仅管理员可见（普通用户与游客不展示）
 const navItems = computed(() => {
   const items = [
     { name: '首页', path: '/' },
@@ -19,1186 +17,438 @@ const navItems = computed(() => {
     { name: '关于我们', path: '/about' },
   ]
   if (authStore.isAdmin) {
-    items.push({ name: '测试中心', path: '/test' })
+    items.push({ name: '管理后台', path: '/admin' })
   }
   return items
 })
 
-// 首页只精确匹配才高亮，其余按前缀匹配（例如 /test/api 也算「测试中心」）
 const isNavActive = (path) => (path === '/' ? route.path === '/' : route.path.startsWith(path))
 
 const isScrolled = ref(false)
-const mobileMenuOpen = ref(false)
-const userMenuOpen = ref(false)
+const mobileOpen = ref(false)
+const pendingCount = ref(0)
+const notifCount = ref(0)
 
 const userInfo = computed(() => authStore.user)
 const isLoggedIn = computed(() => authStore.isLoggedIn)
-
-let lastScrollY = 0
+const isBanned = computed(() => userInfo.value?.status === 2)
 
 const handleScroll = () => {
-  const currentScrollY = window.scrollY
-  isScrolled.value = currentScrollY > 50
-
-  // 隐藏/显示导航栏逻辑
-  if (currentScrollY > lastScrollY && currentScrollY > 100) {
-    // 向下滚动 - 隐藏
-    headerEl.value?.classList.add('header--hidden')
-  } else {
-    // 向上滚动 - 显示
-    headerEl.value?.classList.remove('header--hidden')
-  }
-  lastScrollY = currentScrollY
+  isScrolled.value = window.scrollY > 40
 }
 
-const headerEl = ref(null)
+const loadPending = async () => {
+  if (!isLoggedIn.value) return
+  try {
+    const res = await friendApi.getPendingCount()
+    pendingCount.value = res.code === 0 ? res.data.count : 0
+  } catch {
+    pendingCount.value = 0
+  }
+}
+
+const loadNotifications = async () => {
+  if (!isLoggedIn.value) return
+  try {
+    const res = await notificationApi.getUnreadCount()
+    notifCount.value = res.code === 0 ? res.data.count : 0
+  } catch {
+    notifCount.value = 0
+  }
+}
+
+const go = (path) => {
+  mobileOpen.value = false
+  router.push(path)
+}
+
+const goLogin = () => router.push({ name: 'Login', query: { redirect: route.fullPath } })
+const goRegister = () => router.push({ name: 'Register', query: { redirect: route.fullPath } })
+
+const handleLogout = () => {
+  authStore.logout()
+  router.push('/')
+}
+
+const avatarText = computed(() => (userInfo.value?.nickname || '番').charAt(0).toUpperCase())
+
+watch(
+  () => route.fullPath,
+  () => {
+    mobileOpen.value = false
+    loadPending()
+    loadNotifications()
+  }
+)
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
-  // 入场动画
-  setTimeout(() => {
-    headerEl.value?.classList.add('header--entered')
-  }, 100)
+  loadPending()
+  loadNotifications()
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
-
-const toggleMobileMenu = () => {
-  mobileMenuOpen.value = !mobileMenuOpen.value
-  document.body.style.overflow = mobileMenuOpen.value ? 'hidden' : ''
-}
-
-const navigateTo = (path) => {
-  router.push(path)
-  mobileMenuOpen.value = false
-  document.body.style.overflow = ''
-}
-
-const goLogin = () => {
-  router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
-  mobileMenuOpen.value = false
-  userMenuOpen.value = false
-  document.body.style.overflow = ''
-}
-
-const goRegister = () => {
-  router.push({ name: 'Register', query: { redirect: router.currentRoute.value.fullPath } })
-  mobileMenuOpen.value = false
-  userMenuOpen.value = false
-  document.body.style.overflow = ''
-}
-
-const goProfile = () => {
-  router.push('/profile')
-  userMenuOpen.value = false
-}
-
-const handleLogout = () => {
-  authStore.logout()
-  router.push('/')
-  userMenuOpen.value = false
-}
-
-const toggleUserMenu = (e) => {
-  e.stopPropagation()
-  userMenuOpen.value = !userMenuOpen.value
-}
-
-// 点击外部关闭用户菜单
-const closeUserMenu = (e) => {
-  if (userMenuOpen.value && !e.target.closest('.header__user-menu')) {
-    userMenuOpen.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', closeUserMenu)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', closeUserMenu)
-})
-
-const getAvatarInitial = (nickname) => {
-  if (!nickname) return '番'
-  return nickname.charAt(0).toUpperCase()
-}
 </script>
 
 <template>
-  <header
-    ref="headerEl"
-    class="ghibli-header"
-    :class="{ 'ghibli-header--scrolled': isScrolled, 'ghibli-header--hidden': false, 'ghibli-header--entered': true }"
-    role="banner"
-  >
-    <!-- 背景装饰层 -->
-    <div class="ghibli-header__bg" aria-hidden="true">
-      <div class="ghibli-header__clouds">
-        <div class="ghibli-cloud cloud-1"></div>
-        <div class="ghibli-cloud cloud-2"></div>
-        <div class="ghibli-cloud cloud-3"></div>
-      </div>
-      <div class="ghibli-header__birds">
-        <div class="ghibli-bird bird-1"></div>
-        <div class="ghibli-bird bird-2"></div>
-        <div class="ghibli-bird bird-3"></div>
-      </div>
-      <!-- 飞艇装饰 -->
-      <svg class="ghibli-header__airship" viewBox="0 0 120 60" aria-hidden="true">
-        <ellipse cx="60" cy="35" rx="45" ry="15" fill="var(--ghibli-warm-300)" opacity="0.3"/>
-        <ellipse cx="60" cy="25" rx="30" ry="10" fill="var(--ghibli-warm-400)" opacity="0.4"/>
-        <rect x="30" y="35" width="60" height="8" rx="4" fill="var(--ghibli-warm-500)" opacity="0.3"/>
-        <circle cx="45" cy="39" r="3" fill="var(--ghibli-sky-400)" opacity="0.5"/>
-        <circle cx="60" cy="39" r="3" fill="var(--ghibli-sun-400)" opacity="0.5"/>
-        <circle cx="75" cy="39" r="3" fill="var(--ghibli-forest-400)" opacity="0.5"/>
-      </svg>
-    </div>
+  <header class="site-header" :class="{ 'site-header--scrolled': isScrolled }">
+    <div class="site-header__inner">
+      <router-link to="/" class="site-brand" aria-label="番剧同好会首页">
+        <svg class="site-brand__icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect x="7" y="14" width="34" height="26" rx="6" stroke="currentColor" stroke-width="2.5" fill="var(--ghibli-sky-100)" opacity="0.7" />
+          <rect x="12" y="20" width="24" height="14" rx="4" fill="var(--ghibli-sky-200)" opacity="0.8" />
+          <path d="M18 14 L24 7 L30 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+          <circle cx="24" cy="7" r="2.5" fill="var(--ghibli-sun-400)" />
+          <path d="M21.5 23.5 L28.5 27 L21.5 30.5 Z" fill="var(--ghibli-sakura-400)" />
+        </svg>
+        <span class="site-brand__text">
+          <span class="site-brand__main">番剧同好会</span>
+          <span class="site-brand__sub">追番、安利、找同好</span>
+        </span>
+      </router-link>
 
-    <div class="ghibli-header__container">
-      <!-- Logo 区域 -->
-      <div class="ghibli-header__brand">
-        <router-link to="/" class="ghibli-logo" aria-label="番剧同好会 - 返回首页">
-          <svg class="ghibli-logo__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <!-- 动漫风 Logo：老式电视机 + 播放键 + 星星，代表「追番」与「同好会」 -->
-            <rect x="7" y="14" width="34" height="26" rx="6" stroke="currentColor" stroke-width="2.5" fill="var(--ghibli-sky-100)" opacity="0.7"/>
-            <rect x="12" y="20" width="24" height="14" rx="4" fill="var(--ghibli-sky-200)" opacity="0.8"/>
-            <!-- 天线 -->
-            <path d="M18 14 L24 7 L30 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
-            <circle cx="24" cy="7" r="2.5" fill="var(--ghibli-sun-400)"/>
-            <!-- 旋钮 -->
-            <circle cx="14" cy="36" r="1.8" fill="var(--ghibli-forest-500)"/>
-            <circle cx="20" cy="36" r="1.8" fill="var(--ghibli-warm-500)"/>
-            <!-- 播放键 -->
-            <path d="M21.5 23.5 L28.5 27 L21.5 30.5 Z" fill="var(--ghibli-sakura-400)" stroke="var(--ghibli-sakura-500)" stroke-width="1.2" stroke-linejoin="round">
-              <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
-            </path>
-            <!-- 四角星 -->
-            <path d="M35 21 L36.4 24.6 L40 26 L36.4 27.4 L35 31 L33.6 27.4 L30 26 L33.6 24.6 Z" fill="var(--ghibli-sun-300)" opacity="0.95">
-              <animate attributeName="opacity" values="0.95;0.5;0.95" dur="1.8s" repeatCount="indefinite"/>
-            </path>
-          </svg>
-          <span class="ghibli-logo__text">
-            <span class="ghibli-logo__main">{{ siteTitle }}</span>
-            <span class="ghibli-logo__sub">{{ siteSubtitle }}</span>
-          </span>
+      <nav class="site-nav" role="navigation" aria-label="主导航">
+        <router-link
+          v-for="item in navItems"
+          :key="item.path"
+          :to="item.path"
+          class="site-nav__link"
+          :class="{ 'site-nav__link--active': isNavActive(item.path) }"
+        >
+          {{ item.name }}
         </router-link>
-      </div>
-
-      <!-- 导航菜单 -->
-      <nav class="ghibli-header__nav" role="navigation" aria-label="主导航">
-        <ul class="ghibli-header__nav-list">
-          <li v-for="item in navItems" :key="item.path" class="ghibli-header__nav-item">
-            <router-link
-              :to="item.path"
-              class="ghibli-header__nav-link"
-              :class="{ 'ghibli-header__nav-link--active': isNavActive(item.path) }"
-              :aria-current="isNavActive(item.path) ? 'page' : undefined"
-            >
-              <span class="ghibli-header__nav-text">{{ item.name }}</span>
-              <span class="ghibli-header__nav-indicator" aria-hidden="true"></span>
-            </router-link>
-          </li>
-        </ul>
       </nav>
 
-      <!-- 用户操作区域 -->
-      <div class="ghibli-header__actions">
+      <div class="site-actions">
         <template v-if="isLoggedIn">
-          <!-- 用户下拉菜单 -->
-          <div class="ghibli-dropdown ghibli-header__user-menu">
-            <button
-              class="ghibli-dropdown__trigger ghibli-header__user-trigger"
-              @click="toggleUserMenu"
-              :aria-expanded="userMenuOpen"
-              :aria-label="userMenuOpen ? '关闭用户菜单' : '打开用户菜单'"
-              aria-haspopup="true"
-            >
-              <div class="ghibli-avatar ghibli-avatar--sm ghibli-header__user-avatar" :style="{ background: userInfo?.avatar ? 'none' : 'linear-gradient(135deg, var(--ghibli-sky-400), var(--ghibli-forest-400))' }">
-                <img v-if="userInfo?.avatar" :src="userInfo.avatar" :alt="userInfo.nickname" />
-                <span v-else class="ghibli-avatar__text">{{ getAvatarInitial(userInfo?.nickname) }}</span>
-              </div>
-              <span class="ghibli-header__user-name">{{ userInfo?.nickname }}</span>
-              <svg class="ghibli-header__user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <polyline points="18 15 12 9 6 15"/>
-              </svg>
-            </button>
+          <lay-button type="primary" size="sm" @click="go('/posts/new')">发帖</lay-button>
 
-            <transition name="dropdown-transition">
-              <div
-                v-show="userMenuOpen"
-                class="ghibli-dropdown__menu ghibli-header__user-dropdown"
-                role="menu"
-                aria-label="用户菜单"
-              >
-                <router-link
-                  to="/profile"
-                  class="ghibli-dropdown__item"
-                  role="menuitem"
-                  @click="goProfile"
-                >
-                  <svg class="ghibli-dropdown__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                  </svg>
-                  个人中心
-                </router-link>
-                <hr class="ghibli-dropdown__divider" aria-hidden="true" />
-                <button
-                  class="ghibli-dropdown__item ghibli-dropdown__item--danger"
-                  role="menuitem"
-                  @click="handleLogout"
-                >
-                  <svg class="ghibli-dropdown__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                  </svg>
-                  退出登录
-                </button>
+          <lay-dropdown trigger="click" placement="bottom-end" click-outside-to-close>
+            <div class="site-user" role="button" tabindex="0">
+              <span class="site-user__avatar">{{ avatarText }}</span>
+              <span class="site-user__name">{{ userInfo?.nickname || userInfo?.username }}</span>
+              <lay-badge v-if="pendingCount > 0" :value="pendingCount" type="danger" />
+            </div>
+            <template #content>
+              <div class="site-menu">
+                <div class="site-menu__item" @click="go('/profile')">个人中心</div>
+                <div class="site-menu__item" @click="go('/content/drafts')">草稿箱</div>
+                <div class="site-menu__divider"></div>
+                <div class="site-menu__item" @click="go('/content/posts')">内容管理</div>
+                <div class="site-menu__item" @click="go('/friends')">
+                  好友
+                  <span v-if="pendingCount > 0" class="site-menu__count">{{ pendingCount }}</span>
+                </div>
+                <div class="site-menu__item" @click="go('/notifications')">
+                  消息通知
+                  <span v-if="notifCount > 0" class="site-menu__count">{{ notifCount }}</span>
+                </div>
+                <div class="site-menu__item" @click="go('/profile/identity')">
+                  身份申请
+                </div>
+                <div v-if="isBanned" class="site-menu__item site-menu__item--danger" @click="go('/appeal')">
+                  账号申诉
+                </div>
+                <div v-if="authStore.isAdmin" class="site-menu__item" @click="go('/admin')">管理后台</div>
+                <div class="site-menu__divider"></div>
+                <div class="site-menu__item site-menu__item--muted" @click="handleLogout">退出登录</div>
               </div>
-            </transition>
-          </div>
+            </template>
+          </lay-dropdown>
         </template>
-
         <template v-else>
-          <!-- 未登录状态：登录/注册按钮 -->
-          <div class="ghibli-header__auth-buttons">
-            <button
-              class="ghibli-btn ghibli-btn--ghost ghibli-btn--sm"
-              @click="goLogin"
-            >
-              <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                <polyline points="10 17 15 12 10 7"/>
-                <line x1="15" y1="12" x2="3" y2="12"/>
-              </svg>
-              登录
-            </button>
-            <button
-              class="ghibli-btn ghibli-btn--primary ghibli-btn--sm"
-              @click="goRegister"
-            >
-              <svg class="ghibli-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="8.5" cy="7" r="4"/>
-                <line x1="20" y1="8" x2="20" y2="14"/>
-                <line x1="23" y1="11" x2="17" y2="11"/>
-              </svg>
-              注册
-            </button>
-          </div>
+          <lay-button size="sm" @click="goLogin">登录</lay-button>
+          <lay-button type="primary" size="sm" @click="goRegister">注册</lay-button>
         </template>
-      </div>
 
-      <!-- 移动端菜单按钮 -->
-      <button
-        class="ghibli-header__mobile-toggle"
-        @click="toggleMobileMenu"
-        :aria-expanded="mobileMenuOpen"
-        :aria-label="mobileMenuOpen ? '关闭菜单' : '打开菜单'"
-        aria-controls="mobile-menu"
-      >
-        <span class="ghibli-header__hamburger" aria-hidden="true">
-          <span class="ghibli-header__hamburger-line"></span>
-          <span class="ghibli-header__hamburger-line"></span>
-          <span class="ghibli-header__hamburger-line"></span>
-        </span>
-      </button>
+        <button class="site-mobile-toggle" type="button" aria-label="展开导航" @click="mobileOpen = !mobileOpen">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
 
-    <!-- 移动端菜单面板 -->
-    <transition name="slide-transition">
-      <div
-        v-show="mobileMenuOpen"
-        id="mobile-menu"
-        class="ghibli-header__mobile-menu"
-        role="dialog"
-        aria-modal="true"
-        aria-label="移动端导航菜单"
-      >
-        <div class="ghibli-header__mobile-bg" aria-hidden="true">
-          <div class="ghibli-header__mobile-grass"></div>
-        </div>
+    <div v-if="mobileOpen" class="site-mobile">
+      <router-link v-for="item in navItems" :key="item.path" :to="item.path" class="site-mobile__link">
+        {{ item.name }}
+      </router-link>
+      <template v-if="isLoggedIn">
+        <router-link to="/content/posts" class="site-mobile__link">内容管理</router-link>
+        <router-link to="/friends" class="site-mobile__link">好友</router-link>
+      </template>
+    </div>
 
-        <nav class="ghibli-header__mobile-nav">
-          <ul class="ghibli-header__mobile-nav-list">
-            <li v-for="item in navItems" :key="item.path" class="ghibli-header__mobile-nav-item">
-              <router-link
-                :to="item.path"
-                class="ghibli-header__mobile-nav-link"
-                :class="{ 'ghibli-header__mobile-nav-link--active': isNavActive(item.path) }"
-                @click="navigateTo(item.path)"
-              >
-                <span>{{ item.name }}</span>
-              </router-link>
-            </li>
-          </ul>
-
-          <!-- 移动端用户操作 -->
-          <div class="ghibli-header__mobile-user" v-if="isLoggedIn">
-            <div class="ghibli-header__mobile-user-info">
-              <div class="ghibli-avatar ghibli-avatar--md ghibli-header__mobile-user-avatar" :style="{ background: userInfo?.avatar ? 'none' : 'linear-gradient(135deg, var(--ghibli-sky-400), var(--ghibli-forest-400))' }">
-                <img v-if="userInfo?.avatar" :src="userInfo.avatar" :alt="userInfo.nickname" />
-                <span v-else class="ghibli-avatar__text">{{ getAvatarInitial(userInfo?.nickname) }}</span>
-              </div>
-              <div class="ghibli-header__mobile-user-details">
-                <span class="ghibli-header__mobile-user-name">{{ userInfo?.nickname }}</span>
-                <span class="ghibli-header__mobile-user-username">@{{ userInfo?.username }}</span>
-              </div>
-            </div>
-            <router-link
-              to="/profile"
-              class="ghibli-header__mobile-nav-link"
-              @click="goProfile"
-            >
-              <svg class="ghibli-header__mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              个人中心
-            </router-link>
-            <button
-              class="ghibli-header__mobile-nav-link ghibli-header__mobile-nav-link--danger"
-              @click="handleLogout"
-            >
-              <svg class="ghibli-header__mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-              退出登录
-            </button>
-          </div>
-
-          <div class="ghibli-header__mobile-auth" v-else>
-            <button
-              class="ghibli-header__mobile-nav-link ghibli-header__mobile-nav-link--primary"
-              @click="goLogin"
-            >
-              <svg class="ghibli-header__mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                <polyline points="10 17 15 12 10 7"/>
-                <line x1="15" y1="12" x2="3" y2="12"/>
-              </svg>
-              登录
-            </button>
-            <button
-              class="ghibli-header__mobile-nav-link ghibli-header__mobile-nav-link--primary"
-              @click="goRegister"
-            >
-              <svg class="ghibli-header__mobile-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="8.5" cy="7" r="4"/>
-                <line x1="20" y1="8" x2="20" y2="14"/>
-                <line x1="23" y1="11" x2="17" y2="11"/>
-              </svg>
-              注册
-            </button>
-          </div>
-        </nav>
-      </div>
-    </transition>
-
-    <!-- 底部分割线装饰 -->
-    <div class="ghibli-header__divider" aria-hidden="true">
-      <svg viewBox="0 0 100 4" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M0 2 Q25 0 50 2 T100 2" stroke="var(--ghibli-sky-300)" stroke-width="1.5" opacity="0.5">
-          <animate attributeName="d" values="M0 2 Q25 0 50 2 T100 2; M0 2 Q25 4 50 2 T100 2; M0 2 Q25 0 50 2 T100 2" dur="4s" repeatCount="indefinite"/>
-        </path>
-      </svg>
+    <div v-if="isLoggedIn && isBanned" class="site-banned">
+      账号已被封禁：{{ userInfo?.ban_reason || '违反社区规范' }}
+      <router-link to="/appeal">立即申诉</router-link>
     </div>
   </header>
 </template>
 
 <style scoped>
-/* ===== 导航栏容器 ===== */
-.ghibli-header {
+.site-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: var(--z-fixed);
-  height: 72px;
-  background: rgba(250, 250, 246, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--color-border);
+  background: rgba(250, 250, 246, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
   transition: all var(--duration-normal) var(--ease-gentle);
-  transform: translateY(0);
 }
 
-.ghibli-header--entered {
-  animation: slideDown var(--duration-slow) var(--ease-spring);
+.site-header--scrolled {
+  border-bottom-color: var(--color-divider);
+  box-shadow: var(--shadow-sm);
 }
 
-.ghibli-header--hidden {
-  transform: translateY(-100%);
-}
-
-.ghibli-header--scrolled {
-  height: 68px;
-  background: rgba(250, 250, 246, 0.95);
-  box-shadow: var(--shadow-md);
-  border-bottom-color: var(--ghibli-sky-200);
-}
-
-.ghibli-header__container {
+.site-header__inner {
   max-width: var(--container-2xl);
   margin: 0 auto;
+  height: 72px;
   padding: 0 var(--space-6);
-  height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-  position: relative;
-  z-index: 2;
+  gap: var(--space-8);
 }
 
-/* ===== 背景装饰层 ===== */
-.ghibli-header__bg {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.ghibli-header__clouds {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 100%;
-}
-
-.ghibli-header__cloud {
-  position: absolute;
-  border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%);
-  filter: blur(1px);
-  opacity: 0.5;
-  animation: cloudDrift linear infinite;
-}
-
-.ghibli-header__cloud::before,
-.ghibli-header__cloud::after {
-  content: '';
-  position: absolute;
-  background: inherit;
-  border-radius: 50%;
-  filter: inherit;
-}
-
-.cloud-1 {
-  width: 80px;
-  height: 40px;
-  top: 10%;
-  left: -100px;
-  animation-duration: 80s;
-}
-.cloud-1::before { width: 35px; height: 35px; top: -18px; left: 12px; }
-.cloud-1::after { width: 28px; height: 28px; top: -10px; right: 6px; }
-
-.cloud-2 {
-  width: 100px;
-  height: 50px;
-  top: 30%;
-  right: -120px;
-  animation-duration: 100s;
-  animation-direction: reverse;
-}
-.cloud-2::before { width: 40px; height: 40px; top: -20px; left: 20px; }
-.cloud-2::after { width: 32px; height: 32px; top: -12px; right: 10px; }
-
-.cloud-3 {
-  width: 70px;
-  height: 35px;
-  bottom: 15%;
-  left: -90px;
-  animation-duration: 70s;
-}
-.cloud-3::before { width: 30px; height: 30px; top: -15px; left: 10px; }
-.cloud-3::after { width: 25px; height: 25px; top: -8px; right: 5px; }
-
-@keyframes cloudDrift {
-  from { transform: translateX(0); }
-  to { transform: translateX(calc(100vw + 200px)); }
-}
-
-.ghibli-header__birds {
-  position: absolute;
-  inset: 0;
-}
-
-.ghibli-header__bird {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  animation: birdFly 6s ease-in-out infinite;
-}
-
-.ghibli-header__bird::before,
-.ghibli-header__bird::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-top: 1.5px solid var(--ghibli-ink-400);
-  border-right: 1.5px solid var(--ghibli-ink-400);
-  border-radius: 0 100% 0 0;
-  transform-origin: bottom left;
-  opacity: 0.4;
-}
-
-.ghibli-header__bird::before {
-  left: 0;
-  bottom: 0;
-  transform: rotate(-45deg);
-}
-
-.ghibli-header__bird::after {
-  right: 0;
-  bottom: 0;
-  transform: rotate(45deg) scaleX(-1);
-  border-right: none;
-  border-left: 1.5px solid var(--ghibli-ink-400);
-  border-radius: 100% 0 0 0;
-  transform-origin: bottom right;
-}
-
-.bird-1 { top: 15%; left: 8%; animation-duration: 8s; animation-delay: 0s; }
-.bird-2 { top: 25%; right: 10%; animation-duration: 10s; animation-delay: -2s; }
-.bird-3 { top: 10%; left: 55%; animation-duration: 7s; animation-delay: -4s; }
-
-@keyframes birdFly {
-  0%, 100% { transform: translateX(0) translateY(0) scale(1); }
-  25% { transform: translateX(20px) translateY(-10px) scale(1.1); }
-  50% { transform: translateX(40px) translateY(3px) scale(0.9); }
-  75% { transform: translateX(20px) translateY(6px) scale(1.05); }
-}
-
-/* 飞艇 */
-.ghibli-header__airship {
-  position: absolute;
-  top: 5%;
-  right: 5%;
-  width: 140px;
-  height: 70px;
-  opacity: 0.4;
-  animation: airshipFloat 15s ease-in-out infinite;
-}
-
-@keyframes airshipFloat {
-  0%, 100% { transform: translateY(0) translateX(0); }
-  25% { transform: translateY(-8px) translateX(4px); }
-  50% { transform: translateY(4px) translateX(-2px); }
-  75% { transform: translateY(-4px) translateX(2px); }
-}
-
-/* ===== Logo ===== */
-.ghibli-logo {
-  display: inline-flex;
+.site-brand {
+  display: flex;
   align-items: center;
   gap: var(--space-3);
   text-decoration: none;
-  color: inherit;
-  transition: transform var(--duration-fast) var(--ease-spring);
-}
-
-.ghibli-logo:hover {
-  transform: scale(1.03);
-}
-
-.ghibli-logo:focus-visible {
-  outline: none;
-  border-radius: var(--radius-lg);
-  box-shadow: var(--focus-ring);
-}
-
-.ghibli-logo__icon {
-  width: 44px;
-  height: 44px;
-  color: var(--ghibli-sky-600);
-  filter: drop-shadow(0 2px 8px rgba(14, 165, 233, 0.3));
-}
-
-.ghibli-logo__text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-
-.ghibli-logo__main {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
   color: var(--color-text);
-  letter-spacing: 0.04em;
-  background: linear-gradient(135deg, var(--ghibli-ink-700) 0%, var(--ghibli-sky-500) 50%, var(--ghibli-forest-500) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  flex-shrink: 0;
 }
 
-.ghibli-logo__sub {
-  font-family: var(--font-handwriting);
-  font-size: var(--text-xs);
-  color: var(--ghibli-sky-600);
-  letter-spacing: 0.2em;
-  margin-top: 2px;
-  opacity: 0.9;
-}
-
-/* ===== 导航菜单 ===== */
-.ghibli-header__nav {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.ghibli-header__nav-list {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  margin: 0;
-  padding: 0;
-}
-
-.ghibli-header__nav-item {
-  position: relative;
-}
-
-.ghibli-header__nav-link {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-5);
-  color: var(--color-text-muted);
-  text-decoration: none;
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  border-radius: var(--radius-xl);
-  transition: var(--transition-gentle);
-  position: relative;
-  overflow: hidden;
-}
-
-.ghibli-header__nav-link::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--ghibli-sky-100) 0%, var(--ghibli-forest-100) 100%);
-  opacity: 0;
-  transform: scaleY(0);
-  transform-origin: bottom;
-  transition: var(--transition-normal);
-  border-radius: var(--radius-xl);
-  z-index: -1;
-}
-
-.ghibli-header__nav-link:hover {
+.site-brand__icon {
+  width: 38px;
+  height: 38px;
   color: var(--ghibli-sky-700);
 }
 
-.ghibli-header__nav-link:hover::before {
-  opacity: 1;
-  transform: scaleY(1);
-}
-
-.ghibli-header__nav-link--active {
-  color: var(--ghibli-sky-600);
-  font-weight: var(--font-semibold);
-}
-
-.ghibli-header__nav-link--active::before {
-  opacity: 1;
-  transform: scaleY(1);
-}
-
-.ghibli-header__nav-link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-.ghibli-header__nav-text {
-  position: relative;
-  z-index: 1;
-}
-
-.ghibli-header__nav-indicator {
-  position: absolute;
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%) scaleX(0);
-  width: 24px;
-  height: 3px;
-  background: linear-gradient(90deg, var(--ghibli-sky-400), var(--ghibli-forest-400), var(--ghibli-sun-400));
-  border-radius: 2px;
-  transition: transform var(--duration-normal) var(--ease-spring);
-  z-index: 1;
-}
-
-.ghibli-header__nav-link--active .ghibli-header__nav-indicator,
-.ghibli-header__nav-link:hover .ghibli-header__nav-indicator {
-  transform: translateX(-50%) scaleX(1);
-}
-
-/* ===== 用户操作区域 ===== */
-.ghibli-header__actions {
-  flex-shrink: 0;
+.site-brand__text {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  flex-direction: column;
+  line-height: 1.15;
 }
 
-/* 认证按钮 */
-.ghibli-header__auth-buttons {
+.site-brand__main {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--ghibli-sky-700);
+}
+
+.site-brand__sub {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  letter-spacing: 0.08em;
+}
+
+.site-nav {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  flex: 1;
+  overflow: hidden;
 }
 
-/* 用户下拉菜单触发器 */
-.ghibli-header__user-trigger {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-4) var(--space-1) var(--space-2);
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+.site-nav__link {
+  padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
-  color: var(--color-text);
-  font-family: var(--font-body);
+  color: var(--color-text-light);
   font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  cursor: pointer;
-  transition: var(--transition-gentle);
-  box-shadow: var(--shadow-xs);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all var(--duration-fast) var(--ease-gentle);
 }
 
-.ghibli-header__user-trigger:hover {
-  border-color: var(--ghibli-sky-300);
-  box-shadow: var(--shadow-sm);
+.site-nav__link:hover {
+  color: var(--ghibli-sky-600);
   background: var(--ghibli-sky-50);
 }
 
-.ghibli-header__user-trigger:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring), var(--shadow-md);
+.site-nav__link--active {
+  color: var(--ghibli-sky-700);
+  background: var(--ghibli-sky-100);
+  font-weight: var(--font-semibold);
 }
 
-.ghibli-header__user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  object-fit: cover;
-  border: 2px solid var(--color-border);
-  transition: border-color var(--duration-fast) var(--ease-gentle);
-}
-
-.ghibli-header__user-trigger:hover .ghibli-header__user-avatar {
-  border-color: var(--ghibli-sky-400);
-}
-
-.ghibli-avatar__text {
+.site-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: var(--font-bold);
-  color: var(--ghibli-paper-50);
+  gap: var(--space-3);
+  flex-shrink: 0;
 }
 
-.ghibli-header__user-name {
-  max-width: 120px;
-  white-space: nowrap;
+.site-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast) var(--ease-gentle);
+}
+
+.site-user:hover {
+  background: var(--ghibli-paper-200);
+}
+
+.site-user__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: var(--font-semibold);
+  background: linear-gradient(135deg, var(--ghibli-sky-400), var(--ghibli-forest-400));
+}
+
+.site-user__name {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  max-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.ghibli-header__user-chevron {
-  width: 16px;
-  height: 16px;
-  color: var(--color-text-muted);
-  transition: transform var(--duration-fast) var(--ease-spring);
-}
-
-.ghibli-dropdown__trigger[aria-expanded="true"] .ghibli-header__user-chevron {
-  transform: rotate(180deg);
-}
-
-/* 下拉菜单 */
-.ghibli-header__user-dropdown {
-  min-width: 180px;
+.site-menu {
+  min-width: 168px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
   padding: var(--space-2);
 }
 
-.ghibli-header__user-dropdown .ghibli-dropdown__icon {
-  color: var(--color-text-muted);
+.site-menu__item {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.ghibli-header__user-dropdown .ghibli-dropdown__item:hover .ghibli-dropdown__icon {
-  color: var(--ghibli-sky-600);
+.site-menu__item:hover {
+  background: var(--ghibli-sky-50);
+  color: var(--ghibli-sky-700);
 }
 
-.ghibli-header__user-dropdown .ghibli-dropdown__item--danger:hover .ghibli-dropdown__icon {
+.site-menu__item--danger {
   color: var(--color-error);
 }
 
-/* ===== 移动端菜单按钮 ===== */
-.ghibli-header__mobile-toggle {
+.site-menu__item--muted {
+  color: var(--color-text-muted);
+}
+
+.site-menu__count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--ghibli-sakura-500);
+  color: #fff;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-menu__divider {
+  height: 1px;
+  margin: var(--space-1) var(--space-2);
+  background: var(--color-divider);
+}
+
+.site-mobile-toggle {
   display: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-elevated);
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 44px;
-  height: 44px;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  gap: 4px;
   cursor: pointer;
-  transition: var(--transition-gentle);
-  box-shadow: var(--shadow-xs);
 }
 
-.ghibli-header__mobile-toggle:hover {
-  border-color: var(--ghibli-sky-300);
-  background: var(--ghibli-sky-50);
-  box-shadow: var(--shadow-sm);
-}
-
-.ghibli-header__mobile-toggle:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring), var(--shadow-md);
-}
-
-.ghibli-header__hamburger {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 22px;
-  transition: transform var(--duration-normal) var(--ease-spring);
-}
-
-.ghibli-header__hamburger-line {
-  display: block;
-  width: 100%;
+.site-mobile-toggle span {
+  width: 16px;
   height: 2px;
   background: var(--color-text);
-  border-radius: 1px;
-  transition: var(--duration-normal) var(--ease-spring);
-  transform-origin: center;
+  border-radius: 2px;
 }
 
-.ghibli-header__mobile-toggle[aria-expanded="true"] .ghibli-header__hamburger-line:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-  background: var(--ghibli-sky-500);
+.site-mobile {
+  display: none;
+  padding: var(--space-2) var(--space-6) var(--space-4);
+  border-top: 1px solid var(--color-divider);
+  background: var(--color-bg-elevated);
 }
 
-.ghibli-header__mobile-toggle[aria-expanded="true"] .ghibli-header__hamburger-line:nth-child(2) {
-  opacity: 0;
-}
-
-.ghibli-header__mobile-toggle[aria-expanded="true"] .ghibli-header__hamburger-line:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-  background: var(--ghibli-sky-500);
-}
-
-/* ===== 移动端菜单面板 ===== */
-.ghibli-header__mobile-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-  box-shadow: var(--shadow-xl);
-  overflow: hidden;
-}
-
-.ghibli-header__mobile-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(180deg, var(--ghibli-sky-50) 0%, var(--ghibli-paper-50) 100%);
-}
-
-.ghibli-header__mobile-grass {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: linear-gradient(0deg, var(--ghibli-forest-200) 0%, transparent 100%);
-  opacity: 0.3;
-}
-
-.ghibli-header__mobile-nav {
-  position: relative;
-  z-index: 1;
-  padding: var(--space-6) var(--space-4) var(--space-8);
-}
-
-.ghibli-header__mobile-nav-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin: 0 0 var(--space-6);
-  padding: 0;
-}
-
-.ghibli-header__mobile-nav-link {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-5);
+.site-mobile__link {
+  display: block;
+  padding: var(--space-3) 0;
   color: var(--color-text);
   text-decoration: none;
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: var(--font-medium);
-  border-radius: var(--radius-xl);
-  transition: var(--transition-spring);
-  border-left: 4px solid transparent;
-  background: var(--color-bg-card);
-  box-shadow: var(--shadow-xs);
-}
-
-.ghibli-header__mobile-nav-link:hover,
-.ghibli-header__mobile-nav-link--active {
-  background: var(--ghibli-sky-50);
-  color: var(--ghibli-sky-700);
-  border-left-color: var(--ghibli-sky-400);
-  transform: translateX(4px);
-  box-shadow: var(--shadow-md);
-}
-
-.ghibli-header__mobile-nav-link--active {
-  font-weight: var(--font-semibold);
-}
-
-.ghibli-header__mobile-nav-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-  transition: var(--duration-fast) var(--ease-gentle);
-}
-
-.ghibli-header__mobile-nav-link:hover .ghibli-header__mobile-nav-icon {
-  color: var(--ghibli-sky-500);
-}
-
-/* 移动端用户区域 */
-.ghibli-header__mobile-user {
-  padding: var(--space-4) 0;
-  border-top: 1px solid var(--color-divider);
-  border-bottom: 1px solid var(--color-divider);
-  margin: var(--space-4) 0;
-}
-
-.ghibli-header__mobile-user-info {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-4);
-  margin: calc(var(--space-4) * -1);
-  background: linear-gradient(135deg, var(--ghibli-sky-50), var(--ghibli-forest-50));
-  border-radius: var(--radius-xl);
-}
-
-.ghibli-header__mobile-user-avatar {
-  width: 56px;
-  height: 56px;
-  border: 3px solid var(--ghibli-paper-100);
-  box-shadow: var(--shadow-md);
-}
-
-.ghibli-header__mobile-user-details {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.ghibli-header__mobile-user-name {
-  font-weight: var(--font-semibold);
-  color: var(--color-text);
-  font-size: var(--text-lg);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ghibli-header__mobile-user-username {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  font-family: var(--font-mono);
+  border-bottom: 1px dashed var(--color-divider);
 }
 
-/* 移动端认证按钮 */
-.ghibli-header__mobile-auth {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-2) 0;
+.site-banned {
+  background: var(--color-warning-bg);
+  border-top: 1px solid var(--ghibli-sun-200);
+  color: var(--ghibli-warm-800);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-2) var(--space-4);
 }
 
-.ghibli-header__mobile-nav-link--primary {
-  background: linear-gradient(135deg, var(--ghibli-sky-400), var(--ghibli-sky-600)) !important;
-  color: white !important;
-  border-left-color: var(--ghibli-sun-400) !important;
-  box-shadow: var(--shadow-primary);
+.site-banned a {
+  color: var(--ghibli-sky-700);
+  margin-left: var(--space-3);
+  font-weight: var(--font-semibold);
 }
 
-.ghibli-header__mobile-nav-link--primary:hover {
-  transform: translateX(6px);
-  box-shadow: var(--shadow-primary), 0 8px 24px rgba(14, 165, 233, 0.35);
-}
-
-.ghibli-header__mobile-nav-link--danger {
-  color: var(--color-error);
-  border-left-color: var(--color-error);
-}
-
-.ghibli-header__mobile-nav-link--danger:hover {
-  background: var(--color-error-bg);
-  color: var(--color-error);
-}
-
-.ghibli-header__mobile-nav-link--danger .ghibli-header__mobile-nav-icon {
-  color: var(--color-error);
-}
-
-/* ===== 底部分割线 ===== */
-.ghibli-header__divider {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  overflow: hidden;
-}
-
-/* ===== 响应式 ===== */
-@media (max-width: 1024px) {
-  .ghibli-header__nav {
+@media (max-width: 900px) {
+  .site-nav {
     display: none;
   }
-}
 
-@media (max-width: 768px) {
-  .ghibli-header {
-    height: 64px;
-  }
-
-  .ghibli-header--scrolled {
-    height: 60px;
-  }
-
-  .ghibli-header__container {
-    padding: 0 var(--space-4);
-  }
-
-  .ghibli-logo__main {
-    font-size: var(--text-lg);
-  }
-
-  .ghibli-logo__sub {
-    font-size: 0.6rem;
-  }
-
-  .ghibli-logo__icon {
-    width: 38px;
-    height: 38px;
-  }
-
-  .ghibli-header__mobile-toggle {
+  .site-mobile-toggle {
     display: flex;
   }
 
-  .ghibli-header__actions {
-    display: none;
+  .site-mobile {
+    display: block;
   }
 
-  .ghibli-header__user-name {
+  .site-user__name {
     display: none;
-  }
-
-  .ghibli-header__user-trigger {
-    padding: var(--space-1);
   }
 }
 
 @media (max-width: 480px) {
-  .ghibli-header__container {
-    padding: 0 var(--space-3);
+  .site-header__inner {
+    padding: 0 var(--space-4);
+    gap: var(--space-4);
   }
 
-  .ghibli-logo__text {
+  .site-brand__sub {
     display: none;
-  }
-
-  .ghibli-logo__icon {
-    width: 36px;
-    height: 36px;
-  }
-}
-
-/* ===== 减少动画偏好 ===== */
-@media (prefers-reduced-motion: reduce) {
-  .ghibli-header,
-  .ghibli-header__cloud,
-  .ghibli-header__bird,
-  .ghibli-header__airship,
-  .ghibli-logo__icon,
-  .ghibli-header__nav-link::before,
-  .ghibli-header__nav-indicator,
-  .ghibli-header__hamburger-line,
-  .ghibli-header__user-avatar,
-  .ghibli-header__user-chevron,
-  .ghibli-header__user-dropdown,
-  .ghibli-header__mobile-nav-link,
-  .ghibli-header__mobile-nav-icon,
-  .ghibli-header__divider path {
-    animation: none !important;
-    transition: none !important;
-  }
-
-  .ghibli-header--entered {
-    animation: none;
-  }
-}
-
-/* ===== 高对比度模式 ===== */
-@media (prefers-contrast: high) {
-  .ghibli-header {
-    border-bottom-width: 2px;
-    border-bottom-color: var(--color-text);
-  }
-
-  .ghibli-header__nav-link {
-    border: 2px solid transparent;
-  }
-
-  .ghibli-header__nav-link:hover,
-  .ghibli-header__nav-link--active {
-    border-color: var(--ghibli-sky-500);
-  }
-
-  .ghibli-header__user-trigger {
-    border-width: 2px;
-  }
-
-  .ghibli-header__mobile-nav-link {
-    border-width: 2px;
   }
 }
 </style>

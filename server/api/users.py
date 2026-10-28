@@ -6,12 +6,13 @@
 from flask import Blueprint, g
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from db import execute, paginate, query_one
+from db import execute, paginate, query_all, query_one
 from utils.auth import login_required
 from utils.params import clean, get_body, is_valid_email, is_valid_phone, parse_page_args, require
 from utils.response import (
     CODE_CODE_INVALID,
     CODE_EMAIL_EXISTS,
+    CODE_NOT_FOUND,
     CODE_PARAM_ERROR,
     CODE_PASSWORD_ERROR,
     CODE_PHONE_EXISTS,
@@ -27,7 +28,7 @@ bp = Blueprint("users", __name__, url_prefix="/api")
 
 PROFILE_SQL = (
     "SELECT id, username, email, nickname, avatar, phone, followers_count, "
-    "likes_count, following_count, role, status, create_time "
+    "likes_count, following_count, role, identity, status, ban_reason, ban_time, create_time "
     "FROM users WHERE id=%s"
 )
 
@@ -139,8 +140,11 @@ def _load_profile(user_id):
     user = query_one(PROFILE_SQL, (user_id,))
     if user is not None:
         user["create_time"] = format_datetime(user["create_time"])
+        user["ban_time"] = format_datetime(user["ban_time"])
         # 未绑定手机号在库里是 NULL，统一转成空串，前端只需判断真假
         user["phone"] = user["phone"] or ""
+        user["ban_reason"] = user["ban_reason"] or ""
+        user["is_banned"] = user["status"] == 2
     return user
 
 
@@ -287,3 +291,112 @@ def toggle_follow(target_id):
         "following": following,
         "followers_count": row["followers_count"],
     })
+
+
+# 列表里展示的用户卡片字段（不暴露邮箱与手机号）
+USER_CARD_SELECT = (
+    "SELECT u.id, u.username, u.nickname, u.avatar, u.followers_count, "
+    "u.likes_count, u.following_count "
+    "FROM users u"
+)
+
+
+def _with_relations(items, viewer_id):
+    """给用户列表补充「我是否关注对方 / 是否好友」两个状态。"""
+    if not items:
+        return items
+    ids = [item["id"] for item in items]
+    placeholders = ",".join(["%s"] * len(ids))
+    followed = query_all(
+        f"SELECT followee_id FROM follows WHERE follower_id=%s AND followee_id IN ({placeholders})",
+        [viewer_id] + ids,
+    )
+    friend_ids = query_all(
+        f"SELECT friend_id FROM friends WHERE user_id=%s AND friend_id IN ({placeholders})",
+        [viewer_id] + ids,
+    )
+    followed_set = {row["followee_id"] for row in followed}
+    friend_set = {row["friend_id"] for row in friend_ids}
+    for item in items:
+        item["is_following"] = item["id"] in followed_set
+        item["is_friend"] = item["id"] in friend_set
+    return items
+
+
+@bp.get("/user/following")
+@login_required
+def list_following():
+    """我的关注列表：GET /api/user/following?page=1&page_size=10"""
+    user_id = g.current_user["id"]
+    page, page_size = parse_page_args()
+    count_sql = "SELECT COUNT(*) AS total FROM follows WHERE follower_id=%s"
+    list_sql = (
+        USER_CARD_SELECT
+        + " JOIN follows f ON f.followee_id = u.id "
+        "WHERE f.follower_id=%s ORDER BY f.create_time DESC, f.id DESC"
+    )
+    items, total = paginate(count_sql, list_sql, (user_id,), page=page, page_size=page_size)
+    return make_page_response(_with_relations(items, user_id), total, page, page_size)
+
+
+@bp.get("/user/followers")
+@login_required
+def list_followers():
+    """我的粉丝列表：GET /api/user/followers?page=1&page_size=10"""
+    user_id = g.current_user["id"]
+    page, page_size = parse_page_args()
+    count_sql = "SELECT COUNT(*) AS total FROM follows WHERE followee_id=%s"
+    list_sql = (
+        USER_CARD_SELECT
+        + " JOIN follows f ON f.follower_id = u.id "
+        "WHERE f.followee_id=%s ORDER BY f.create_time DESC, f.id DESC"
+    )
+    items, total = paginate(count_sql, list_sql, (user_id,), page=page, page_size=page_size)
+    return make_page_response(_with_relations(items, user_id), total, page, page_size)
+
+
+@bp.get("/user/received-likes")
+@login_required
+def list_received_likes():
+    """我的获赞列表：GET /api/user/received-likes?page=1&page_size=10
+
+    按帖子聚合展示：只返回获赞数大于 0 且仍在公开范围的我的帖子。
+    """
+    user_id = g.current_user["id"]
+    page, page_size = parse_page_args()
+    where = " WHERE p.user_id=%s AND p.status=1 AND p.like_count>0 AND p.review_status<>3"
+    count_sql = "SELECT COUNT(*) AS total FROM posts p" + where
+    list_sql = (
+        "SELECT p.id, p.title, p.cover, p.tags, p.summary, p.category, p.visibility, "
+        "p.review_status, p.like_count, p.reply_count, p.view_count, p.publish_time, "
+        "u.nickname AS author_nickname, u.avatar AS author_avatar "
+        "FROM posts p JOIN users u ON u.id=p.user_id" + where
+        + " ORDER BY p.like_count DESC, p.publish_time DESC, p.id DESC"
+    )
+    items, total = paginate(count_sql, list_sql, (user_id,), page=page, page_size=page_size)
+    for item in items:
+        item["publish_time"] = format_datetime(item["publish_time"])
+    return make_page_response(items, total, page, page_size)
+
+
+@bp.get("/users/<int:target_id>")
+@login_required
+def get_user_card(target_id):
+    """查看其他用户的公开资料卡：GET /api/users/1（需登录）"""
+    viewer_id = g.current_user["id"]
+    user = query_one(
+        "SELECT u.id, u.username, u.nickname, u.avatar, u.identity, u.followers_count, "
+        "u.likes_count, u.following_count, u.create_time FROM users u WHERE u.id=%s",
+        (target_id,),
+    )
+    if user is None:
+        return make_response(CODE_NOT_FOUND, "用户不存在")
+    user["create_time"] = format_datetime(user["create_time"])
+    _with_relations([user], viewer_id)
+    friend_request = query_one(
+        "SELECT id, status FROM friend_requests "
+        "WHERE from_user_id=%s AND to_user_id=%s",
+        (viewer_id, target_id),
+    )
+    user["friend_request_status"] = friend_request["status"] if friend_request else None
+    return make_response(CODE_SUCCESS, "获取成功", user)

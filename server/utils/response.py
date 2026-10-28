@@ -22,6 +22,10 @@ CODE_CODE_INVALID = 1010  # 邮箱验证码错误或已过期
 CODE_CODE_TOO_FREQUENT = 1011  # 验证码发送过于频繁
 CODE_PHONE_EXISTS = 1012  # 该手机号已被其他账号绑定
 CODE_MAIL_SEND_FAILED = 1013  # 验证码邮件发送失败
+CODE_USER_BANNED = 1014  # 账号已被封禁，无法执行该操作
+CODE_APPEAL_EXISTS = 1015  # 已有待处理的申诉
+CODE_NOT_BANNED = 1016  # 账号未被封禁，无需申诉
+CODE_APPLICATION_EXISTS = 1017  # 已有待处理的身份申请
 CODE_DB_ERROR = 2000  # 数据库操作失败
 CODE_SERVER_ERROR = 3000  # 服务器内部错误
 

@@ -1,489 +1,645 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { animeRequestApi } from '@/api'
+import { animeApi, animeRecommendationApi, animeRequestApi } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-// ===== 求番列表 =====
-const requests = ref([])
-const loading = ref(false)
-const listError = ref('')
-const page = ref(1)
-const pageSize = 10
-const totalPages = ref(0)
-const hasMore = computed(() => page.value < totalPages.value)
+const PAGE_SIZE = 10
 
-const loadRequests = async (reset = false) => {
-  if (reset) {
-    page.value = 1
-    requests.value = []
-  }
-  loading.value = true
-  listError.value = ''
+// ===== 板块切换：番剧库 / 番剧推荐 / 求番 =====
+const TABS = [
+  { key: 'library', label: '番剧库' },
+  { key: 'recommend', label: '番剧推荐' },
+  { key: 'request', label: '求番' },
+]
+
+const tab = ref('library')
+
+const switchTab = (key) => {
+  if (tab.value === key) return
+  tab.value = key
+  if (key === 'library') loadLibrary(1)
+  if (key === 'recommend') loadRecommendations(1)
+  if (key === 'request') loadRequests(1)
+}
+
+// ===== 番剧库列表（管理员在管理后台录入）=====
+const library = ref([])
+const libraryTotal = ref(0)
+const libraryPage = ref(1)
+const libraryLoading = ref(false)
+const libraryError = ref('')
+
+const loadLibrary = async (page = libraryPage.value) => {
+  libraryLoading.value = true
+  libraryError.value = ''
   try {
-    const res = await animeRequestApi.getList({ page: page.value, page_size: pageSize })
+    const res = await animeApi.getList({ page, page_size: PAGE_SIZE })
     if (res.code === 0) {
-      requests.value = reset ? res.data.list : [...requests.value, ...res.data.list]
-      totalPages.value = res.data.total_pages
+      library.value = res.data.list || []
+      libraryTotal.value = res.data.total || 0
+      libraryPage.value = res.data.page || page
     } else {
-      listError.value = res.message
+      libraryError.value = res.message || '获取番剧库失败'
     }
   } catch (err) {
-    listError.value = err.message || '获取求番列表失败'
+    libraryError.value = err.message || '获取番剧库失败'
   } finally {
-    loading.value = false
+    libraryLoading.value = false
   }
 }
 
-const loadMore = () => {
-  if (loading.value || !hasMore.value) return
-  page.value += 1
-  loadRequests()
+// ===== 番剧推荐列表 =====
+const recommendations = ref([])
+const recommendTotal = ref(0)
+const recommendPage = ref(1)
+const recommendLoading = ref(false)
+const recommendError = ref('')
+
+const REVIEW_META = {
+  0: { label: '待评审', type: 'warm' },
+  1: { label: '已推荐', type: 'normal' },
+  2: { label: '已打回', type: 'danger' },
+}
+const reviewMeta = (status) => REVIEW_META[status] || REVIEW_META[0]
+
+const loadRecommendations = async (page = recommendPage.value) => {
+  recommendLoading.value = true
+  recommendError.value = ''
+  try {
+    const res = await animeRecommendationApi.getList({ page, page_size: PAGE_SIZE })
+    if (res.code === 0) {
+      recommendations.value = res.data.list || []
+      recommendTotal.value = res.data.total || 0
+      recommendPage.value = res.data.page || page
+    } else {
+      recommendError.value = res.message || '获取推荐列表失败'
+    }
+  } catch (err) {
+    recommendError.value = err.message || '获取推荐列表失败'
+  } finally {
+    recommendLoading.value = false
+  }
 }
 
-// ===== 求番面板（浮动按钮触发） =====
-const requestForm = ref({ anime_name: '', reason: '' })
-const submitting = ref(false)
-const formError = ref('')
-const panelOpen = ref(false)
+// ===== 求番列表 =====
+const requests = ref([])
+const requestTotal = ref(0)
+const requestPage = ref(1)
+const requestLoading = ref(false)
+const requestError = ref('')
 
-const openComposer = () => {
+const loadRequests = async (page = requestPage.value) => {
+  requestLoading.value = true
+  requestError.value = ''
+  try {
+    const res = await animeRequestApi.getList({ page, page_size: PAGE_SIZE })
+    if (res.code === 0) {
+      requests.value = res.data.list || []
+      requestTotal.value = res.data.total || 0
+      requestPage.value = res.data.page || page
+    } else {
+      requestError.value = res.message || '获取求番列表失败'
+    }
+  } catch (err) {
+    requestError.value = err.message || '获取求番列表失败'
+  } finally {
+    requestLoading.value = false
+  }
+}
+
+// ===== 推荐表单：番名、链接、推荐理由均为必填 =====
+const recommendOpen = ref(false)
+const recommendForm = ref({ anime_name: '', link: '', reason: '' })
+const recommendSubmitting = ref(false)
+const recommendFormError = ref('')
+
+const openRecommend = () => {
   if (!authStore.isLoggedIn) {
     goLogin()
     return
   }
-  requestForm.value = { anime_name: '', reason: '' }
-  formError.value = ''
-  panelOpen.value = true
-  document.body.style.overflow = 'hidden'
+  recommendFormError.value = ''
+  recommendOpen.value = true
+  requestOpen.value = false
 }
 
-const closePanel = () => {
-  panelOpen.value = false
-  document.body.style.overflow = ''
+const submitRecommend = async () => {
+  if (recommendSubmitting.value) return
+  recommendFormError.value = ''
+  const animeName = recommendForm.value.anime_name.trim()
+  const link = recommendForm.value.link.trim()
+  const reason = recommendForm.value.reason.trim()
+  if (!animeName) {
+    recommendFormError.value = '请填写推荐番名'
+    return
+  }
+  if (!link) {
+    recommendFormError.value = '请填写推荐番剧链接'
+    return
+  }
+  if (!/^https?:\/\/\S+$/i.test(link)) {
+    recommendFormError.value = '链接需以 http:// 或 https:// 开头'
+    return
+  }
+  if (!reason) {
+    recommendFormError.value = '请填写推荐理由'
+    return
+  }
+
+  recommendSubmitting.value = true
+  try {
+    const res = await animeRecommendationApi.create({ anime_name: animeName, link, reason })
+    if (res.code === 0) {
+      recommendForm.value = { anime_name: '', link: '', reason: '' }
+      window.$ghibli?.showToast({ type: 'success', title: '推荐成功', message: '等待管理员评审' })
+      if (recommendPage.value !== 1) recommendPage.value = 1
+      await loadRecommendations(1)
+    } else {
+      recommendFormError.value = res.message
+    }
+  } catch (err) {
+    recommendFormError.value = err.message || '推荐失败，请稍后重试'
+  } finally {
+    recommendSubmitting.value = false
+  }
+}
+
+// ===== 求番表单 =====
+const requestOpen = ref(false)
+const requestForm = ref({ anime_name: '', reason: '' })
+const requestSubmitting = ref(false)
+const requestFormError = ref('')
+
+const openRequest = () => {
+  if (!authStore.isLoggedIn) {
+    goLogin()
+    return
+  }
+  requestFormError.value = ''
+  requestOpen.value = true
+  recommendOpen.value = false
 }
 
 const submitRequest = async () => {
-  formError.value = ''
+  if (requestSubmitting.value) return
+  requestFormError.value = ''
   const animeName = requestForm.value.anime_name.trim()
   if (!animeName) {
-    formError.value = '请填写想求的番剧名称'
+    requestFormError.value = '请填写想求的番剧名称'
     return
   }
-  submitting.value = true
+
+  requestSubmitting.value = true
   try {
-    const res = await animeRequestApi.create({ anime_name: animeName, reason: requestForm.value.reason.trim() })
+    const res = await animeRequestApi.create({
+      anime_name: animeName,
+      reason: requestForm.value.reason.trim(),
+    })
     if (res.code === 0) {
       requestForm.value = { anime_name: '', reason: '' }
-      closePanel()
-      window.$ghibli?.showToast({ type: 'success', title: '求番成功', message: '管理员看到后会尽快收录' })
-      await loadRequests(true)
+      window.$ghibli?.showToast({
+        type: 'success',
+        title: '求番成功',
+        message: '已通知管理员，会尽快收录',
+      })
+      if (requestPage.value !== 1) requestPage.value = 1
+      await loadRequests(1)
     } else {
-      formError.value = res.message
+      requestFormError.value = res.message
     }
   } catch (err) {
-    formError.value = err.message || '求番失败，请稍后重试'
+    requestFormError.value = err.message || '求番失败，请稍后重试'
   } finally {
-    submitting.value = false
+    requestSubmitting.value = false
   }
+}
+
+// ===== 分页与链接 =====
+const changePage = (payload, currentRef, loader) => {
+  const current = typeof payload === 'number' ? payload : payload?.current
+  if (!current) return
+  loader(current)
+  currentRef.value = current
+}
+
+const openLink = (link) => {
+  if (!link) return
+  window.open(link, '_blank', 'noopener,noreferrer')
 }
 
 const goLogin = () => router.push({ name: 'Login', query: { redirect: router.currentRoute.value.fullPath } })
+const avatarText = (name) => (name || '同好').slice(0, 1)
 
-onMounted(() => loadRequests(true))
+const currentTotal = computed(() => {
+  if (tab.value === 'library') return libraryTotal.value
+  if (tab.value === 'recommend') return recommendTotal.value
+  return requestTotal.value
+})
+
+onMounted(() => {
+  loadLibrary(1)
+  loadRecommendations(1)
+  loadRequests(1)
+})
 </script>
 
 <template>
-  <section class="ghibli-section heroes-page" aria-labelledby="heroes-title">
-    <header class="ghibli-section__header">
-      <h1 id="heroes-title" class="ghibli-section__title">番剧库</h1>
-      <p class="ghibli-section__desc">从当季新番到经典老番，找不到的番就求一求</p>
-    </header>
+  <div class="page-wrap">
+    <section class="page-hero heroes-hero">
+      <div class="heroes-hero__text">
+        <h1 class="page-title">番剧库</h1>
+        <p class="page-sub">管理员收录的番剧、同好推荐的宝藏番，以及求番许愿池</p>
+      </div>
+      <div class="heroes-actions">
+        <lay-button type="primary" size="lg" @click="openRecommend">推荐一部番</lay-button>
+        <lay-button type="normal" size="lg" @click="openRequest">求一部番</lay-button>
+      </div>
+    </section>
 
-    <div class="ghibli-section__content">
-      <!-- 求番列表 -->
-      <div class="request-list">
-        <div v-if="requests.length === 0 && !loading && !listError" class="ghibli-empty">
-          <svg class="ghibli-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-            <rect x="2" y="7" width="20" height="14" rx="2"/>
-            <polyline points="17 2 12 7 7 2"/>
-            <path d="M10 12.5 L15 15 L10 17.5 Z"/>
-          </svg>
-          <h3 class="ghibli-empty__title">还没有人求番</h3>
-          <p class="ghibli-empty__desc">想看的番不在库里？点击右下角「求番」按钮，让管理员安排上</p>
+    <!-- 推荐表单 -->
+    <lay-card v-if="recommendOpen" class="composer-card">
+      <div class="composer-head">
+        <h2 class="composer-title">推荐一部番</h2>
+        <lay-button size="sm" @click="recommendOpen = false">收起</lay-button>
+      </div>
+
+      <lay-form class="composer-form" label-position="top" @submit="submitRecommend">
+        <div v-if="recommendFormError" class="form-error" role="alert">{{ recommendFormError }}</div>
+
+        <lay-form-item label="番名" required>
+          <lay-input
+            v-model="recommendForm.anime_name"
+            placeholder="例如：千与千寻"
+            :maxlength="100"
+            allow-clear
+          />
+        </lay-form-item>
+
+        <lay-form-item label="番剧链接" required>
+          <lay-input
+            v-model="recommendForm.link"
+            type="url"
+            placeholder="以 http:// 或 https:// 开头的有效地址"
+            :maxlength="500"
+            allow-clear
+          />
+        </lay-form-item>
+
+        <lay-form-item label="推荐理由" required>
+          <lay-textarea
+            v-model="recommendForm.reason"
+            :rows="4"
+            :maxlength="5000"
+            show-count
+            placeholder="为什么推荐这部番？剧情、画面、音乐都可以写"
+          />
+        </lay-form-item>
+
+        <div class="form-actions">
+          <lay-button type="primary" native-type="submit" :loading="recommendSubmitting">
+            {{ recommendSubmitting ? '提交中...' : '提交推荐' }}
+          </lay-button>
+          <lay-button native-type="button" @click="recommendOpen = false">取消</lay-button>
         </div>
+      </lay-form>
+    </lay-card>
 
-        <div v-if="listError" class="ghibli-empty">
-          <svg class="ghibli-empty__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="15" y1="9" x2="9" y2="15"/>
-            <line x1="9" y1="9" x2="15" y2="15"/>
-          </svg>
-          <h3 class="ghibli-empty__title">求番列表走丢了</h3>
-          <p class="ghibli-empty__desc">{{ listError }}</p>
-          <button class="ghibli-btn ghibli-btn--warm" @click="loadRequests(true)">重试</button>
+    <!-- 求番表单 -->
+    <lay-card v-if="requestOpen" class="composer-card">
+      <div class="composer-head">
+        <h2 class="composer-title">发起求番</h2>
+        <lay-button size="sm" @click="requestOpen = false">收起</lay-button>
+      </div>
+
+      <lay-form class="composer-form" label-position="top" @submit="submitRequest">
+        <div v-if="requestFormError" class="form-error" role="alert">{{ requestFormError }}</div>
+
+        <lay-form-item label="番剧名" required>
+          <lay-input
+            v-model="requestForm.anime_name"
+            placeholder="想看的番叫什么？例如：你想求《千与千寻》收录"
+            :maxlength="100"
+            allow-clear
+          />
+        </lay-form-item>
+
+        <lay-form-item label="理由（选填）">
+          <lay-textarea
+            v-model="requestForm.reason"
+            :rows="4"
+            :maxlength="5000"
+            show-count
+            placeholder="为什么想看这部番？有推荐人也可以写上，方便管理员优先收录"
+          />
+        </lay-form-item>
+
+        <div class="form-actions">
+          <lay-button type="primary" native-type="submit" :loading="requestSubmitting">
+            {{ requestSubmitting ? '提交中...' : '提交求番' }}
+          </lay-button>
+          <lay-button native-type="button" @click="requestOpen = false">取消</lay-button>
         </div>
+      </lay-form>
+    </lay-card>
 
-        <ul v-else-if="requests.length" class="request-list__items">
-          <li v-for="item in requests" :key="item.id" class="request-item ghibli-card ghibli-card--outlined">
-            <div class="request-item__main">
-              <div class="request-item__head">
-                <h3 class="request-item__name">{{ item.anime_name }}</h3>
-                <span
-                  class="ghibli-badge"
-                  :class="item.status === 1 ? 'ghibli-badge--success' : 'ghibli-badge--warning'"
+    <div class="page-toolbar heroes-toolbar">
+      <div class="tab-row">
+        <lay-button
+          v-for="item in TABS"
+          :key="item.key"
+          :type="tab === item.key ? 'primary' : undefined"
+          @click="switchTab(item.key)"
+        >
+          {{ item.label }}
+        </lay-button>
+      </div>
+      <span class="page-toolbar__spacer"></span>
+      <span class="muted heroes-count">共 {{ currentTotal }} 条</span>
+    </div>
+
+    <!-- ===== 番剧库 ===== -->
+    <template v-if="tab === 'library'">
+      <lay-card v-if="libraryLoading && !library.length">
+        <div class="empty-box">正在把番剧库搬过来……</div>
+      </lay-card>
+      <lay-card v-else-if="libraryError">
+        <div class="empty-box">
+          <p class="danger-text">{{ libraryError }}</p>
+          <lay-button type="primary" @click="loadLibrary(libraryPage)">重试</lay-button>
+        </div>
+      </lay-card>
+      <lay-card v-else-if="!library.length">
+        <div class="empty-box">
+          <h3 class="empty-box__title">番剧库还是空的</h3>
+          <p class="muted">管理员还没有录入番剧，先去求一部番吧</p>
+          <lay-button type="primary" @click="openRequest">求一部番</lay-button>
+        </div>
+      </lay-card>
+      <lay-card v-else class="list-card">
+        <ul class="entry-list">
+          <li v-for="item in library" :key="item.id" class="list-row">
+            <div class="list-row__main">
+              <div class="request-head">
+                <h3 class="list-row__title">{{ item.title }}</h3>
+                <lay-tag v-if="item.category" type="normal" variant="light" shape="round" size="sm">
+                  {{ item.category }}
+                </lay-tag>
+              </div>
+              <p v-if="item.description" class="entry-desc">{{ item.description }}</p>
+              <div class="meta">
+                <span>管理员收录</span>
+                <time :datetime="item.create_time">{{ item.create_time }}</time>
+              </div>
+            </div>
+            <lay-button v-if="item.link" size="sm" type="primary" @click="openLink(item.link)">
+              打开
+            </lay-button>
+          </li>
+        </ul>
+        <div v-if="libraryTotal > PAGE_SIZE" class="pagination-wrap">
+          <lay-page
+            v-model="libraryPage"
+            :total="libraryTotal"
+            :limit="PAGE_SIZE"
+            :layout="['prev', 'page', 'next', 'count']"
+            @change="(payload) => changePage(payload, libraryPage, loadLibrary)"
+          />
+        </div>
+      </lay-card>
+    </template>
+
+    <!-- ===== 番剧推荐 ===== -->
+    <template v-else-if="tab === 'recommend'">
+      <lay-card v-if="recommendLoading && !recommendations.length">
+        <div class="empty-box">正在加载推荐……</div>
+      </lay-card>
+      <lay-card v-else-if="recommendError">
+        <div class="empty-box">
+          <p class="danger-text">{{ recommendError }}</p>
+          <lay-button type="primary" @click="loadRecommendations(recommendPage)">重试</lay-button>
+        </div>
+      </lay-card>
+      <lay-card v-else-if="!recommendations.length">
+        <div class="empty-box">
+          <h3 class="empty-box__title">还没有番剧推荐</h3>
+          <p class="muted">有想安利的宝藏番？点击右上角「推荐一部番」</p>
+          <lay-button type="primary" @click="openRecommend">推荐一部番</lay-button>
+        </div>
+      </lay-card>
+      <lay-card v-else class="list-card">
+        <ul class="entry-list">
+          <li v-for="item in recommendations" :key="item.id" class="list-row">
+            <span class="avatar-circle" aria-hidden="true">{{ avatarText(item.author_nickname) }}</span>
+            <div class="list-row__main">
+              <div class="request-head">
+                <h3 class="list-row__title">{{ item.anime_name }}</h3>
+                <lay-tag
+                  :type="reviewMeta(item.review_status).type"
+                  variant="light"
+                  shape="round"
+                  size="sm"
+                >
+                  {{ reviewMeta(item.review_status).label }}
+                </lay-tag>
+              </div>
+              <p v-if="item.reason" class="entry-desc">推荐理由：{{ item.reason }}</p>
+              <div class="meta">
+                <span>{{ item.author_nickname || '热心同好' }}</span>
+                <time :datetime="item.create_time">{{ item.create_time }}</time>
+              </div>
+            </div>
+            <lay-button v-if="item.link" size="sm" type="primary" @click="openLink(item.link)">
+              查看番剧
+            </lay-button>
+          </li>
+        </ul>
+        <div v-if="recommendTotal > PAGE_SIZE" class="pagination-wrap">
+          <lay-page
+            v-model="recommendPage"
+            :total="recommendTotal"
+            :limit="PAGE_SIZE"
+            :layout="['prev', 'page', 'next', 'count']"
+            @change="(payload) => changePage(payload, recommendPage, loadRecommendations)"
+          />
+        </div>
+      </lay-card>
+    </template>
+
+    <!-- ===== 求番 ===== -->
+    <template v-else>
+      <lay-card v-if="requestLoading && !requests.length">
+        <div class="empty-box">正在把求番名单搬过来……</div>
+      </lay-card>
+      <lay-card v-else-if="requestError">
+        <div class="empty-box">
+          <p class="danger-text">{{ requestError }}</p>
+          <lay-button type="primary" @click="loadRequests(requestPage)">重试</lay-button>
+        </div>
+      </lay-card>
+      <lay-card v-else-if="!requests.length">
+        <div class="empty-box">
+          <h3 class="empty-box__title">还没有人求番</h3>
+          <p class="muted">想看的番不在库里？点右上角「求一部番」，让管理员安排上</p>
+          <lay-button type="primary" @click="openRequest">求一部番</lay-button>
+        </div>
+      </lay-card>
+      <lay-card v-else class="list-card">
+        <ul class="entry-list">
+          <li v-for="item in requests" :key="item.id" class="list-row">
+            <span class="avatar-circle" aria-hidden="true">{{ avatarText(item.author_nickname) }}</span>
+            <div class="list-row__main">
+              <div class="request-head">
+                <h3 class="list-row__title">{{ item.anime_name }}</h3>
+                <lay-tag
+                  :type="item.status === 1 ? 'normal' : 'warm'"
+                  variant="light"
+                  shape="round"
+                  size="sm"
                 >
                   {{ item.status === 1 ? '已收录' : '待收录' }}
-                </span>
+                </lay-tag>
               </div>
-              <p v-if="item.reason" class="request-item__reason">{{ item.reason }}</p>
-            </div>
-            <div class="request-item__meta">
-              <span class="request-item__author">{{ item.author_nickname }}</span>
-              <time class="request-item__time" :datetime="item.create_time">{{ item.create_time }}</time>
+              <p v-if="item.reason" class="entry-desc">{{ item.reason }}</p>
+              <div class="meta">
+                <span>{{ item.author_nickname || '热心同好' }}</span>
+                <time :datetime="item.create_time">{{ item.create_time }}</time>
+              </div>
             </div>
           </li>
         </ul>
-
-        <div v-if="hasMore" class="request-loadmore">
-          <button class="ghibli-btn ghibli-btn--outline" @click="loadMore" :disabled="loading">
-            <span v-if="loading" class="ghibli-spinner" aria-hidden="true"></span>
-            {{ loading ? '加载中...' : '加载更多' }}
-          </button>
+        <div v-if="requestTotal > PAGE_SIZE" class="pagination-wrap">
+          <lay-page
+            v-model="requestPage"
+            :total="requestTotal"
+            :limit="PAGE_SIZE"
+            :layout="['prev', 'page', 'next', 'count']"
+            @change="(payload) => changePage(payload, requestPage, loadRequests)"
+          />
         </div>
-      </div>
-    </div>
-
-    <!-- 浮动按钮：常驻右下角，无关闭方式，点击开合求番面板 -->
-    <button
-      class="heroes-fab"
-      :aria-label="panelOpen ? '收起求番面板' : '求番'"
-      :aria-expanded="panelOpen"
-      @click="panelOpen ? closePanel() : openComposer()"
-    >
-      <svg class="heroes-fab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path d="M12 5v14M5 12h14"/>
-      </svg>
-      <span class="heroes-fab__text">{{ authStore.isLoggedIn ? (panelOpen ? '收起' : '求番') : '求番' }}</span>
-    </button>
-
-    <!-- 求番面板 -->
-    <div v-if="panelOpen" class="heroes-modal">
-      <div class="heroes-modal__backdrop" @click="closePanel" aria-hidden="true"></div>
-      <div class="heroes-modal__panel" role="dialog" aria-modal="true" aria-labelledby="request-title">
-        <h2 id="request-title" class="heroes-modal__title">
-          <svg class="heroes-modal__title-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path d="M9 11l3 3L22 4"/>
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-          </svg>
-          求一部番
-        </h2>
-
-        <form class="heroes-modal__form" @submit.prevent="submitRequest">
-          <div v-if="formError" class="heroes-modal__error" role="alert">{{ formError }}</div>
-          <div class="form-group">
-            <label for="anime-name" class="form-label">番剧名称 <span class="form-required">*</span></label>
-            <div class="ghibli-input-wrapper">
-              <input
-                id="anime-name"
-                v-model="requestForm.anime_name"
-                type="text"
-                class="ghibli-input"
-                placeholder="想看的番叫什么？例如：你想求《千与千寻》的资源库收录"
-                maxlength="100"
-              />
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="request-reason" class="form-label">求番理由（选填）</label>
-            <textarea
-              id="request-reason"
-              v-model="requestForm.reason"
-              class="heroes-modal__textarea"
-              rows="4"
-              placeholder="为什么想看这部番？有推荐人也可以写上，方便管理员优先收录"
-              maxlength="5000"
-            ></textarea>
-          </div>
-          <div class="heroes-modal__actions">
-            <button type="button" class="ghibli-btn ghibli-btn--outline" @click="closePanel">取消</button>
-            <button type="submit" class="ghibli-btn ghibli-btn--primary" :disabled="submitting">
-              <span v-if="submitting" class="ghibli-spinner" aria-hidden="true"></span>
-              {{ submitting ? '提交中...' : '提交求番' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </section>
+      </lay-card>
+    </template>
+  </div>
 </template>
 
 <style scoped>
-.heroes-page {
-  padding: var(--space-12) 0 var(--space-20);
-}
-
-/* ===== 求番列表 ===== */
-.request-list {
-  min-height: 200px;
-}
-
-.request-list__items {
+.heroes-hero {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-  margin: 0;
-  padding: 0;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-6);
 }
 
-.request-item {
+.heroes-hero__text {
+  min-width: 0;
+}
+
+.heroes-actions {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.composer-card {
+  margin-bottom: var(--space-6);
+  border-color: var(--ghibli-sakura-200);
+}
+
+.composer-card :deep(.layui-card-body) {
   padding: var(--space-6) var(--space-8);
 }
 
-.request-item__head {
+.composer-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-4);
-  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
 }
 
-.request-item__name {
+.composer-title {
   font-family: var(--font-display);
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: var(--font-semibold);
   color: var(--color-text);
   margin: 0;
 }
 
-.request-item__reason {
+.composer-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.composer-form :deep(.layui-form-item) {
+  margin-bottom: 0;
+}
+
+.form-error {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.heroes-toolbar {
+  align-items: center;
+}
+
+.heroes-count {
+  font-size: var(--text-sm);
+}
+
+.list-card :deep(.layui-card-body) {
+  padding: var(--space-4) var(--space-8);
+}
+
+.entry-list {
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.request-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.request-head .list-row__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  white-space: normal;
+}
+
+.entry-desc {
+  margin: var(--space-2) 0 0;
   color: var(--color-text-muted);
   line-height: var(--leading-relaxed);
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.request-item__meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px dashed var(--color-divider);
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+.meta {
+  margin-top: var(--space-2);
 }
 
-.request-item__author {
-  font-weight: var(--font-medium);
-  color: var(--color-text);
-}
-
-.request-loadmore {
-  text-align: center;
-  margin-top: var(--space-12);
-}
-
-/* ===== 浮动按钮（常驻右下角，无关闭方式） ===== */
-.heroes-fab {
-  position: fixed;
-  right: 28px;
-  bottom: 32px;
-  z-index: var(--z-index-fixed);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-6);
-  background: linear-gradient(135deg, var(--ghibli-sakura-500), var(--ghibli-warm-500));
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-full);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-  box-shadow: var(--shadow-lg), 0 8px 24px rgba(244, 114, 182, 0.35);
-  transition: var(--transition-spring);
-}
-
-.heroes-fab:hover {
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: var(--shadow-xl), 0 10px 28px rgba(244, 114, 182, 0.45);
-}
-
-.heroes-fab:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring), var(--shadow-lg);
-}
-
-.heroes-fab__icon {
-  width: 20px;
-  height: 20px;
-}
-
-/* ===== 求番面板 ===== */
-.heroes-modal {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-index-modal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-6);
-}
-
-.heroes-modal__backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(20, 24, 32, 0.55);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-
-.heroes-modal__panel {
-  position: relative;
-  width: 100%;
-  max-width: 560px;
-  max-height: 88vh;
-  overflow-y: auto;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-8);
-  box-shadow: var(--shadow-xl);
-  animation: modalIn var(--duration-normal) var(--ease-spring);
-}
-
-@keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: translateY(24px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.heroes-modal__title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-text);
-  margin: 0 0 var(--space-6);
-}
-
-.heroes-modal__title-icon {
-  width: 22px;
-  height: 22px;
-  color: var(--ghibli-sakura-600);
-}
-
-.heroes-modal__form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-5);
-}
-
-.heroes-modal__error {
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-error-bg);
-  color: var(--color-error);
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-lg);
-  font-size: var(--text-sm);
-}
-
-.heroes-modal__textarea {
-  width: 100%;
-  padding: var(--space-4) var(--space-5);
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  font-size: var(--text-base);
-  line-height: var(--leading-relaxed);
-  color: var(--color-text);
-  resize: vertical;
-  min-height: 96px;
-  transition: var(--transition-gentle);
-}
-
-.heroes-modal__textarea::placeholder {
-  color: var(--color-text-muted);
-  opacity: 0.7;
-}
-
-.heroes-modal__textarea:hover:not(:disabled) {
-  border-color: var(--ghibli-sakura-300);
-}
-
-.heroes-modal__textarea:focus {
-  outline: none;
-  border-color: var(--ghibli-sakura-400);
-  box-shadow: var(--focus-ring);
-}
-
-.heroes-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-}
-
-/* ===== 表单字段 ===== */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.form-label {
-  font-size: var(--text-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-text);
-}
-
-.form-required {
-  color: var(--color-error);
-}
-
-/* ===== 响应式 ===== */
 @media (max-width: 768px) {
-  .heroes-page {
-    padding: var(--space-8) 0 var(--space-16);
+  .heroes-hero {
+    padding: var(--space-8) var(--space-6);
   }
 
-  .heroes-fab {
-    right: 16px;
-    bottom: 20px;
-    padding: var(--space-3) var(--space-5);
-  }
-
-  .heroes-modal {
-    padding: var(--space-3);
-    align-items: flex-end;
-  }
-
-  .heroes-modal__panel {
-    max-height: 92vh;
-    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
-    padding: var(--space-6);
-  }
-
-  .heroes-modal__actions {
-    flex-direction: column-reverse;
-    align-items: stretch;
-  }
-
-  .heroes-modal__actions .ghibli-btn {
-    width: 100%;
+  .composer-card :deep(.layui-card-body),
+  .list-card :deep(.layui-card-body) {
+    padding: var(--space-4) var(--space-5);
   }
 }
 </style>

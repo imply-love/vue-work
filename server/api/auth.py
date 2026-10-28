@@ -19,6 +19,7 @@ from utils.response import (
     CODE_USER_DISABLED,
     CODE_USER_NOT_FOUND,
     CODE_USERNAME_EXISTS,
+    format_datetime,
     make_response,
 )
 from utils.token import generate_token
@@ -126,7 +127,7 @@ def login():
 
     user = query_one(
         "SELECT id, username, password, email, nickname, avatar, phone, followers_count, "
-        "likes_count, following_count, role, status "
+        "likes_count, following_count, role, status, ban_reason, ban_time "
         "FROM users WHERE username=%s",
         (username,),
     )
@@ -136,6 +137,7 @@ def login():
     if not check_password_hash(user["password"], password):
         return make_response(CODE_PASSWORD_ERROR, "密码错误")
 
+    # status=0 为禁用（不可登录）；status=2 为封禁，允许登录但限制发言并引导申诉
     if user["status"] == 0:
         return make_response(CODE_USER_DISABLED, "账号已被禁用")
 
@@ -154,6 +156,10 @@ def login():
         "likes_count": user["likes_count"],
         "following_count": user["following_count"],
         "role": user["role"],
+        "status": user["status"],
+        "is_banned": user["status"] == 2,
+        "ban_reason": user["ban_reason"] or "",
+        "ban_time": format_datetime(user["ban_time"]),
         "token": generate_token(user["id"]),
     })
 
